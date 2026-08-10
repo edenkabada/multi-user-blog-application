@@ -9,7 +9,7 @@ export class UsersController {
 
   constructor(
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   @Post('register')
   register(@Body() registerUserDto: RegisterUserDto) {
@@ -18,7 +18,7 @@ export class UsersController {
 
   @Post('login')
   login(@Body() loginUserDto: LoginUserDto) {
-  return this.usersService.login(loginUserDto);
-}
-    
+    return this.usersService.login(loginUserDto);
+  }
+
 }
