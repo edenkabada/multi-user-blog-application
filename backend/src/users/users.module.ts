@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 
+// Configure the Users module and its dependencies
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),

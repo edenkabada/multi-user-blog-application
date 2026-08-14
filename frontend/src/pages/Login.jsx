@@ -1,29 +1,23 @@
 import { useState } from 'react'
 
-// Receive a callback to switch to the login screen
-function Register({ onSwitchToLogin }) {
+// Receive a callback to switch to the registration screen
+function Login({ onSwitchToRegister }) {
 
-    // Store the values entered in the registration form
+    // Store the values entered in the login form
     const [username, setUsername] = useState('')
-    const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
     // Store validation and API response messages
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
 
-    // Handle form submission, validation, and registration request
+    // Handle form submission, validation, and login request
     const handleSubmit = async (e) => {
         e.preventDefault()
 
         // Validate that all required fields are filled
         if (!username.trim()) {
             setError('Username is required')
-            return
-        }
-
-        if (!email.trim()) {
-            setError('Email is required')
             return
         }
 
@@ -36,21 +30,24 @@ function Register({ onSwitchToLogin }) {
         setError('')
         setSuccess('')
 
-        // Send the registration data to the backend
-        const response = await fetch('http://localhost:3000/users/register', {
+        // Send the login data to the backend
+        const response = await fetch('http://localhost:3000/users/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 username,
-                email,
                 password,
             }),
         })
 
         if (response.ok) {
-            setSuccess('Registration successful!')
+            const data = await response.json()
+            // Store the JWT token received from the backend
+            localStorage.setItem('access_token', data.access_token)
+
+            setSuccess('Login successful!')
         }
 
         // Display the error returned by the backend
@@ -59,15 +56,16 @@ function Register({ onSwitchToLogin }) {
             setError(data.message)
             return
         }
-
     }
+
 
     return (
         <div>
-            <h1>Register</h1>
+            <h1>Login</h1>
             {error && <p>{error}</p>}
             {success && <p>{success}</p>}
             <form onSubmit={handleSubmit}>
+
                 <label htmlFor="username">Username</label>
                 <input
                     id="username"
@@ -75,15 +73,6 @@ function Register({ onSwitchToLogin }) {
                     placeholder="Enter your username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                />
-
-                <label htmlFor="email">Email</label>
-                <input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                 />
 
                 <label htmlFor="password">Password</label>
@@ -96,20 +85,20 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <button type="submit">
-                    Register
+                    Login
                 </button>
 
             </form>
 
-            {/* Allow the user to switch to the Login screen */}
+            {/* Allow the user to switch to the Registration screen */}
             <p>
-                Already have an account?{' '}
-                <button onClick={onSwitchToLogin}>
-                    Login
+                Don't have an account?{' '}
+                <button onClick={onSwitchToRegister}>
+                    Register
                 </button>
             </p>
         </div>
     )
-}
 
-export default Register
+}
+export default Login
