@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -15,6 +16,7 @@ describe('UsersController', () => {
           provide: UsersService,
           useValue: {
             register: jest.fn(),
+            login: jest.fn(),
           },
         },
       ],
@@ -40,6 +42,20 @@ describe('UsersController', () => {
     const result = await controller.register(dto);
 
     expect(service.register).toHaveBeenCalledWith(dto);
+    expect(result).toBe(expected);
+  });
+
+  it('delegates login to UsersService and returns its result', async () => {
+    const dto: LoginUserDto = {
+      username: 'alon',
+      password: 'password123',
+    };
+    const expected = { access_token: 'signed-jwt' };
+    service.login.mockResolvedValue(expected as never);
+
+    const result = await controller.login(dto);
+
+    expect(service.login).toHaveBeenCalledWith(dto);
     expect(result).toBe(expected);
   });
 });
