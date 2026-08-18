@@ -1,15 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
   let repository: jest.Mocked<Repository<User>>;
+  let jwtService: jest.Mocked<JwtService>;
 
   const registerDto: RegisterUserDto = {
     username: 'alon',
@@ -26,6 +29,13 @@ describe('UsersService', () => {
           useValue: {
             create: jest.fn(),
             save: jest.fn(),
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            sign: jest.fn(),
           },
         },
       ],
@@ -33,6 +43,7 @@ describe('UsersService', () => {
 
     service = module.get<UsersService>(UsersService);
     repository = module.get(getRepositoryToken(User));
+    jwtService = module.get(JwtService);
   });
 
   it('should be defined', () => {
@@ -82,5 +93,56 @@ describe('UsersService', () => {
     await expect(service.register(registerDto)).rejects.toThrow(
       'connection lost',
     );
+  });
+
+  describe('login', () => {
+    const loginDto: LoginUserDto = {
+      username: 'alon',
+      password: 'password123',
+    };
+
+    it('returns an access token when credentials are valid', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 1,
+        username: loginDto.username,
+        password: hashedPassword,
+      } as User);
+      jwtService.sign.mockReturnValue('signed-jwt');
+
+      const result = await service.login(loginDto);
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { username: loginDto.username },
+      });
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        sub: 1,
+        username: loginDto.username,
+      });
+      expect(result).toEqual({ access_token: 'signed-jwt' });
+    });
+
+    it('throws UnauthorizedException when the username is unknown', async () => {
+      repository.findOne.mockResolvedValue(null);
+
+      await expect(service.login(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('throws UnauthorizedException when the password is wrong', async () => {
+      const hashedPassword = await bcrypt.hash('a-different-password', 10);
+      repository.findOne.mockResolvedValue({
+        userId: 1,
+        username: loginDto.username,
+        password: hashedPassword,
+      } as User);
+
+      await expect(service.login(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
   });
 });
