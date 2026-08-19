@@ -1,21 +1,23 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 
-
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async register(registerUserDto: RegisterUserDto) {
     const { username, email, password } = registerUserDto;
@@ -28,29 +30,23 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    let savedUser;
-
     try {
-      savedUser = await this.userRepository.save(user);
+      const savedUser = await this.userRepository.save(user);
+      const { password: _password, ...result } = savedUser;
+      return result;
     } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
+      if (this.isDuplicateEntryError(error)) {
         if (error.message.includes('users.username')) {
           throw new ConflictException('Username already exists');
         }
-
         if (error.message.includes('users.email')) {
           throw new ConflictException('Email already exists');
         }
+        throw new ConflictException('Username or email is already taken');
       }
-
       throw error;
     }
-
-    const { password: _, ...result } = savedUser;
-
-    return result;
   }
-
 
   async login(loginUserDto: LoginUserDto) {
     const { username, password } = loginUserDto;
@@ -81,6 +77,11 @@ export class UsersService {
     };
   }
 
-
+  private isDuplicateEntryError(error: unknown): error is QueryFailedError {
+    return (
+      error instanceof QueryFailedError &&
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        'ER_DUP_ENTRY'
+    );
+  }
 }
-

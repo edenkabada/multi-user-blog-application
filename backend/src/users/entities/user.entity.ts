@@ -20,7 +20,11 @@ export class User {
   @Column({ name: 'is_blocked', default: false })
   isBlocked: boolean;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
   @Column({ name: 'updated_at', type: 'timestamp', nullable: true })
