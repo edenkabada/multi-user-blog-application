@@ -24,6 +24,7 @@ describe('PostsService', () => {
           useValue: {
             create: jest.fn(),
             save: jest.fn(),
+            find: jest.fn(),
           },
         },
       ],
@@ -54,5 +55,20 @@ describe('PostsService', () => {
     });
     expect(repository.save).toHaveBeenCalledWith(createdPost);
     expect(result).toEqual({ ...createdPost, postId: 1 });
+  });
+
+  it('returns all posts ordered newest first', async () => {
+    const posts = [
+      { postId: 2, title: 'Newer' } as Post,
+      { postId: 1, title: 'Older' } as Post,
+    ];
+    repository.find.mockResolvedValue(posts);
+
+    const result = await service.findAll();
+
+    expect(repository.find).toHaveBeenCalledWith({
+      order: { createdAt: 'DESC' },
+    });
+    expect(result).toBe(posts);
   });
 });

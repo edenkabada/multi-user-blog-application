@@ -2,6 +2,7 @@ import {
   Controller,
   Body,
   Post,
+  Get,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -29,5 +30,11 @@ export class PostsController {
   ) {
     // Pass the post data and authenticated user to the service
     return this.postsService.create(createPostDto, req.user);
+  }
+
+  // Handle requests to retrieve all posts
+  @Get()
+  findAllPosts() {
+    return this.postsService.findAll();
   }
 }

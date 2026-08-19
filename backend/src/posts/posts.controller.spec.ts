@@ -15,6 +15,7 @@ describe('PostsController', () => {
           provide: PostsService,
           useValue: {
             create: jest.fn(),
+            findAll: jest.fn(),
           },
         },
       ],
@@ -37,6 +38,19 @@ describe('PostsController', () => {
     const result = await controller.createPost(dto, { user });
 
     expect(service.create).toHaveBeenCalledWith(dto, user);
+    expect(result).toBe(expected);
+  });
+
+  it('delegates listing posts to PostsService', async () => {
+    const expected = [
+      { postId: 2, title: 'Newer', content: 'B' },
+      { postId: 1, title: 'Older', content: 'A' },
+    ];
+    service.findAll.mockResolvedValue(expected as never);
+
+    const result = await controller.findAllPosts();
+
+    expect(service.findAll).toHaveBeenCalled();
     expect(result).toBe(expected);
   });
 });
