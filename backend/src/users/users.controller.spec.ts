@@ -51,7 +51,7 @@ describe('UsersController', () => {
       password: 'password123',
     };
     const expected = { access_token: 'signed-jwt' };
-    service.login.mockResolvedValue(expected as never);
+    service.login.mockResolvedValue(expected);
 
     const result = await controller.login(dto);
 

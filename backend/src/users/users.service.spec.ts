@@ -56,7 +56,7 @@ describe('UsersService', () => {
     repository.save.mockResolvedValue({
       ...createdUser,
       password: 'hashed-password',
-    } as User);
+    });
 
     const result = await service.register(registerDto);
 
@@ -68,14 +68,22 @@ describe('UsersService', () => {
     );
     const savedPassword = repository.create.mock.calls[0][0].password;
     expect(savedPassword).not.toBe(registerDto.password);
-    expect(await bcrypt.compare(registerDto.password, savedPassword as string)).toBe(true);
+    expect(
+      await bcrypt.compare(registerDto.password, savedPassword as string),
+    ).toBe(true);
     expect(result).not.toHaveProperty('password');
   });
 
   it('throws a ConflictException when the username or email is already taken', async () => {
     repository.create.mockReturnValue({ ...registerDto } as User);
-    const duplicateError = new QueryFailedError('', [], new Error('Duplicate entry'));
-    (duplicateError as unknown as { driverError: { code: string } }).driverError = {
+    const duplicateError = new QueryFailedError(
+      '',
+      [],
+      new Error('Duplicate entry'),
+    );
+    (
+      duplicateError as unknown as { driverError: { code: string } }
+    ).driverError = {
       code: 'ER_DUP_ENTRY',
     };
     repository.save.mockRejectedValue(duplicateError);
