@@ -50,10 +50,15 @@ function useAuthForm({ fields, requiredFields }) {
                 body: JSON.stringify(values),
             })
 
-            const data = await response.json()
+            const data = await response.json().catch(() => null)
 
             if (!response.ok) {
-                setError(data.message)
+                // ValidationPipe returns `message` as a string array when
+                // multiple fields fail validation; join it into one line.
+                const message = Array.isArray(data?.message)
+                    ? data.message.join(', ')
+                    : data?.message || 'Request failed. Please try again.'
+                setError(message)
                 return
             }
 
@@ -61,6 +66,8 @@ function useAuthForm({ fields, requiredFields }) {
                 onSuccess(data)
             }
             setSuccess(successMessage)
+        } catch {
+            setError('Unable to reach the server. Please try again.')
         } finally {
             submittingRef.current = false
             setIsSubmitting(false)

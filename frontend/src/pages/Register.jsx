@@ -46,7 +46,7 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <button type="submit" disabled={isSubmitting}>
-                    Register
+                    {isSubmitting ? 'Registering...' : 'Register'}
                 </button>
 
             </form>
