@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+// Defines the User entity and maps it to the Users table in the database
 @Entity('Users')
 export class User {
   @PrimaryGeneratedColumn({ name: 'user_id' })

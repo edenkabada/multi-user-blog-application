@@ -1,39 +1,35 @@
 import useAuthForm from '../hooks/useAuthForm'
 import FormField from '../components/FormField'
 
-// Receive a callback to switch to the login screen
-function Register({ onSwitchToLogin }) {
+// Receive a callback to switch to the registration screen
+function Login({ onSwitchToRegister }) {
     const { values, setValue, error, success, isSubmitting, submit } = useAuthForm({
-        fields: { username: '', email: '', password: '' },
-        requiredFields: ['username', 'email', 'password'],
+        fields: { username: '', password: '' },
+        requiredFields: ['username', 'password'],
     })
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        submit('/users/register', { successMessage: 'Registration successful!' })
+        submit('/users/login', {
+            successMessage: 'Login successful!',
+            // Store the JWT token received from the backend
+            onSuccess: (data) => localStorage.setItem('access_token', data.access_token),
+        })
     }
 
     return (
         <div>
-            <h1>Register</h1>
+            <h1>Login</h1>
             {error && <p>{error}</p>}
             {success && <p>{success}</p>}
             <form onSubmit={handleSubmit}>
+
                 <FormField
                     id="username"
                     label="Username"
                     placeholder="Enter your username"
                     value={values.username}
                     onChange={(value) => setValue('username', value)}
-                />
-
-                <FormField
-                    id="email"
-                    label="Email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={values.email}
-                    onChange={(value) => setValue('email', value)}
                 />
 
                 <FormField
@@ -46,20 +42,20 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Registering...' : 'Register'}
+                    Login
                 </button>
 
             </form>
 
-            {/* Allow the user to switch to the Login screen */}
+            {/* Allow the user to switch to the Registration screen */}
             <p>
-                Already have an account?{' '}
-                <button onClick={onSwitchToLogin}>
-                    Login
+                Don't have an account?{' '}
+                <button onClick={onSwitchToRegister}>
+                    Register
                 </button>
             </p>
         </div>
     )
-}
 
-export default Register
+}
+export default Login
