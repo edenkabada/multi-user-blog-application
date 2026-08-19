@@ -36,13 +36,19 @@ export class UsersService {
       savedUser = await this.userRepository.save(user);
     } catch (error) {
 
-      // Handle duplicate username or email errors
+      // Handle duplicate username or email errors. MySQL's duplicate-entry
+      // error names the violated index, not the column, so look up which
+      // field actually conflicts rather than parsing the error message.
       if (error.code === 'ER_DUP_ENTRY') {
-        if (error.message.includes('users.username')) {
+        const existing = await this.userRepository.findOne({
+          where: [{ username }, { email }],
+        });
+
+        if (existing?.username === username) {
           throw new ConflictException('Username already exists');
         }
 
-        if (error.message.includes('users.email')) {
+        if (existing?.email === email) {
           throw new ConflictException('Email already exists');
         }
       }

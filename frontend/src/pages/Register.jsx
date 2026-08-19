@@ -1,65 +1,16 @@
-import { useState } from 'react'
+import useAuthForm from '../hooks/useAuthForm'
+import FormField from '../components/FormField'
 
 // Receive a callback to switch to the login screen
 function Register({ onSwitchToLogin }) {
+    const { values, setValue, error, success, isSubmitting, submit } = useAuthForm({
+        fields: { username: '', email: '', password: '' },
+        requiredFields: ['username', 'email', 'password'],
+    })
 
-    // Store the values entered in the registration form
-    const [username, setUsername] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-
-    // Store validation and API response messages
-    const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
-
-    // Handle form submission, validation, and registration request
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
-
-        // Validate that all required fields are filled
-        if (!username.trim()) {
-            setError('Username is required')
-            return
-        }
-
-        if (!email.trim()) {
-            setError('Email is required')
-            return
-        }
-
-        if (!password.trim()) {
-            setError('Password is required')
-            return
-        }
-
-        // Clear previous error and success messages
-        setError('')
-        setSuccess('')
-
-        // Send the registration data to the backend
-        const response = await fetch('http://localhost:3000/users/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-            }),
-        })
-
-        if (response.ok) {
-            setSuccess('Registration successful!')
-        }
-
-        // Display the error returned by the backend
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
-        }
-
+        submit('/users/register', { successMessage: 'Registration successful!' })
     }
 
     return (
@@ -68,34 +19,33 @@ function Register({ onSwitchToLogin }) {
             {error && <p>{error}</p>}
             {success && <p>{success}</p>}
             <form onSubmit={handleSubmit}>
-                <label htmlFor="username">Username</label>
-                <input
+                <FormField
                     id="username"
-                    type="text"
+                    label="Username"
                     placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={values.username}
+                    onChange={(value) => setValue('username', value)}
                 />
 
-                <label htmlFor="email">Email</label>
-                <input
+                <FormField
                     id="email"
+                    label="Email"
                     type="email"
                     placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={values.email}
+                    onChange={(value) => setValue('email', value)}
                 />
 
-                <label htmlFor="password">Password</label>
-                <input
+                <FormField
                     id="password"
+                    label="Password"
                     type="password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={values.password}
+                    onChange={(value) => setValue('password', value)}
                 />
 
-                <button type="submit">
+                <button type="submit" disabled={isSubmitting}>
                     Register
                 </button>
 
