@@ -7,6 +7,7 @@ function Register() {
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -28,29 +29,37 @@ function Register() {
 
         setError('')
         setSuccess('')
+        setIsSubmitting(true)
 
-        const response = await fetch('http://localhost:3000/users/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-            }),
-        })
+        try {
+            const response = await fetch('http://localhost:3000/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                }),
+            })
 
-        if (response.ok) {
-            setSuccess('Registration successful!')
+            const data = await response.json().catch(() => null)
+
+            if (response.ok) {
+                setSuccess('Registration successful!')
+                return
+            }
+
+            const message = Array.isArray(data?.message)
+                ? data.message.join(', ')
+                : data?.message || 'Registration failed. Please try again.'
+            setError(message)
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
         }
-
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
-        }
-
     }
 
     return (
@@ -86,8 +95,8 @@ function Register() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button type="submit">
-                    Register
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Registering...' : 'Register'}
                 </button>
             </form>
         </div>
