@@ -25,4 +25,9 @@ export class PostsService {
         // Save the new post to the database
         return this.postRepository.save(post);
     }
+
+    // Retrieve all posts from the database
+    async findAll() {
+        return this.postRepository.find();
+    }
 }
