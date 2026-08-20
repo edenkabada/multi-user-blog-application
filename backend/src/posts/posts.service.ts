@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -29,5 +30,29 @@ export class PostsService {
     // Retrieve all posts from the database
     async findAll() {
         return this.postRepository.find();
+    }
+
+    // Update an existing post owned by the authenticated user
+    async update(
+        postId: number,
+        updatePostDto: UpdatePostDto,
+        user: { userId: number; username: string },
+    ) {
+        const post = await this.postRepository.findOne({
+            where: { postId },
+        });
+
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
+
+        if (post.userId !== user.userId) {
+            throw new ForbiddenException('You are not allowed to update this post');
+        }
+
+        post.title = updatePostDto.title ?? post.title;
+        post.content = updatePostDto.content ?? post.content;
+
+        return this.postRepository.save(post);
     }
 }

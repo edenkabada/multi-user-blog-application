@@ -1,6 +1,7 @@
-import { Controller, Body, Post, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Body, Post, Get, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 
 @Controller('posts')
@@ -24,5 +25,20 @@ export class PostsController {
     @Get()
     findAllPosts() {
         return this.postsService.findAll();
+    }
+
+    // Handle post update requests from authenticated users
+    @UseGuards(JwtAuthGuard)
+    @Put(':postId')
+    updatePost(
+        @Param('postId') postId: string,
+        @Body() updatePostDto: UpdatePostDto,
+        @Request() req,
+    ) {
+        return this.postsService.update(
+            Number(postId),
+            updatePostDto,
+            req.user,
+        );
     }
 }
