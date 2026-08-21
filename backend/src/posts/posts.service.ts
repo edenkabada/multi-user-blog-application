@@ -55,4 +55,28 @@ export class PostsService {
 
         return this.postRepository.save(post);
     }
+
+    // Delete an existing post owned by the authenticated user
+    async remove(
+        postId: number,
+        user: { userId: number; username: string },
+    ) {
+        const post = await this.postRepository.findOne({
+            where: { postId },
+        });
+
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
+
+        if (post.userId !== user.userId) {
+            throw new ForbiddenException('You are not allowed to delete this post');
+        }
+
+        await this.postRepository.remove(post);
+
+        return {
+            message: 'Post deleted successfully',
+        };
+    }
 }
