@@ -2,34 +2,46 @@ import { useState } from 'react'
 import './App.css'
 import Register from './pages/Register'
 import Login from './pages/Login'
+import Home from './pages/Home'
 
 function App() {
 
-  // Controls whether the registration screen is displayed
-  const [showRegister, setShowRegister] = useState(false)
   // Controls whether the login/registration screens are displayed
   const [showLogin, setShowLogin] = useState(false)
 
-  return (
-    <>
-      {/* Show the Login button only on the main page */}
-      {!showLogin && (
-        <button className="login-button" onClick={() => setShowLogin(true)}>
-          Login
-        </button>
-      )}
+  // Controls whether the user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!localStorage.getItem('access_token')
+  )
 
-      {/* Display the Login or Registration screen after clicking Login */}
-      {showLogin && (
+  // Controls whether the registration screen is displayed
+  const [showRegister, setShowRegister] = useState(false)
+
+  return (
+    <div className="app">
+      {!showLogin ? (
+        <Home
+          isLoggedIn={isLoggedIn}
+          onLogin={() => setShowLogin(true)}
+        />
+      ) : (
         <>
+          {/* Display the Login or Registration screen */}
           {showRegister ? (
-            <Register onSwitchToLogin={() => setShowRegister(false)} />
+            <Register
+              onSwitchToLogin={() => setShowRegister(false)}
+              onBackToHome={() => setShowLogin(false)}
+            />
           ) : (
-            <Login onSwitchToRegister={() => setShowRegister(true)} />
+            <Login
+              onSwitchToRegister={() => setShowRegister(true)}
+              onBackToHome={() => setShowLogin(false)}
+              onLoginSuccess={() => setIsLoggedIn(true)}
+            />
           )}
         </>
       )}
-    </>
+    </div>
   )
 }
 

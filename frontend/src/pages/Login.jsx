@@ -1,17 +1,20 @@
 import { useState } from 'react'
 
-// Receive a callback to switch to the registration screen
-function Login({ onSwitchToRegister }) {
+// Receive callbacks for navigation between screens
+function Login({
+    onSwitchToRegister,
+    onBackToHome,
+    onLoginSuccess
+}) {
 
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
-    // Store validation and API response messages
+    // Store login error messages
     const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
 
-    // Handle form submission, validation, and login request
+    // Handle form submission and login request
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -26,9 +29,8 @@ function Login({ onSwitchToRegister }) {
             return
         }
 
-        // Clear previous error and success messages
+        // Clear previous error message
         setError('')
-        setSuccess('')
 
         // Send the login data to the backend
         const response = await fetch('http://localhost:3000/users/login', {
@@ -44,10 +46,12 @@ function Login({ onSwitchToRegister }) {
 
         if (response.ok) {
             const data = await response.json()
+            
             // Store the JWT token received from the backend
             localStorage.setItem('access_token', data.access_token)
+            onLoginSuccess()
+            onBackToHome()
 
-            setSuccess('Login successful!')
         }
 
         // Display the error returned by the backend
@@ -60,43 +64,57 @@ function Login({ onSwitchToRegister }) {
 
 
     return (
-        <div>
-            <h1>Login</h1>
-            {error && <p>{error}</p>}
-            {success && <p>{success}</p>}
-            <form onSubmit={handleSubmit}>
+        <div className="login-page">
 
-                <label htmlFor="username">Username</label>
-                <input
-                    id="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
+            <div
+                className="login-logo"
+                onClick={onBackToHome}
+            >
+                Multi User Blog
+            </div>
 
-                <label htmlFor="password">Password</label>
-                <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+            <div className="login-container">
 
-                <button type="submit">
-                    Login
-                </button>
+                <h1>Login</h1>
 
-            </form>
+                {error && <p className="error-message">{error}</p>}
 
-            {/* Allow the user to switch to the Registration screen */}
-            <p>
-                Don't have an account?{' '}
-                <button onClick={onSwitchToRegister}>
-                    Register
-                </button>
-            </p>
+                <form onSubmit={handleSubmit}>
+
+                    <label htmlFor="username">Username</label>
+
+                    <input
+                        id="username"
+                        type="text"
+                        placeholder="Enter your username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+
+                    <label htmlFor="password">Password</label>
+
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <button type="submit">
+                        Login
+                    </button>
+
+                </form>
+
+                <p className="register-link">
+                    Don't have an account?{' '}
+                    <button onClick={onSwitchToRegister}>
+                        Register
+                    </button>
+                </p>
+
+            </div>
         </div>
     )
 

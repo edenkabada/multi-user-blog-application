@@ -1,18 +1,17 @@
 import { useState } from 'react'
 
-// Receive a callback to switch to the login screen
-function Register({ onSwitchToLogin }) {
+// Receive callbacks for navigation between screens
+function Register({ onSwitchToLogin, onBackToHome}) {
 
     // Store the values entered in the registration form
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
-    // Store validation and API response messages
+    // Store registration error messages
     const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
 
-    // Handle form submission, validation, and registration request
+    // Handle form submission and registration request
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -32,9 +31,8 @@ function Register({ onSwitchToLogin }) {
             return
         }
 
-        // Clear previous error and success messages
+        // Clear previous error message
         setError('')
-        setSuccess('')
 
         // Send the registration data to the backend
         const response = await fetch('http://localhost:3000/users/register', {
@@ -50,7 +48,7 @@ function Register({ onSwitchToLogin }) {
         })
 
         if (response.ok) {
-            setSuccess('Registration successful!')
+            onSwitchToLogin()
         }
 
         // Display the error returned by the backend
@@ -63,12 +61,25 @@ function Register({ onSwitchToLogin }) {
     }
 
     return (
-        <div>
-            <h1>Register</h1>
-            {error && <p>{error}</p>}
-            {success && <p>{success}</p>}
+    <div className="register-page">
+
+        <div
+            className="register-logo"
+            onClick={onBackToHome}
+        >
+            Multi User Blog
+        </div>
+
+        <div className="register-container">
+
+            <h1>Create Account</h1>
+
+            {error && <p className="error-message">{error}</p>}
+
             <form onSubmit={handleSubmit}>
+
                 <label htmlFor="username">Username</label>
+
                 <input
                     id="username"
                     type="text"
@@ -78,6 +89,7 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <label htmlFor="email">Email</label>
+
                 <input
                     id="email"
                     type="email"
@@ -87,6 +99,7 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <label htmlFor="password">Password</label>
+
                 <input
                     id="password"
                     type="password"
@@ -101,15 +114,16 @@ function Register({ onSwitchToLogin }) {
 
             </form>
 
-            {/* Allow the user to switch to the Login screen */}
-            <p>
+            <p className="login-link">
                 Already have an account?{' '}
                 <button onClick={onSwitchToLogin}>
                     Login
                 </button>
             </p>
+
         </div>
-    )
+    </div>
+)
 }
 
 export default Register
