@@ -1,4 +1,21 @@
-function Home({ isLoggedIn, onLogin }) {
+import { useState } from 'react'
+
+
+function Home({ isLoggedIn, onLogin, onCreatePost }) {
+
+  // Control the login message modal
+  const [showLoginMessage, setShowLoginMessage] = useState(false)
+
+  // Handle the Create Post button click
+  const handleCreatePostClick = () => {
+    if (isLoggedIn) {
+      onCreatePost()
+    } else {
+      setShowLoginMessage(true)
+    }
+  }
+
+
   return (
     <>
       {/* Navigation bar */}
@@ -7,14 +24,23 @@ function Home({ isLoggedIn, onLogin }) {
           Multi User Blog
         </div>
 
-        {!isLoggedIn && (
+        <div className="navbar-actions">
           <button
-            className="login-button"
-            onClick={onLogin}
+            className="create-post-button"
+            onClick={handleCreatePostClick}
           >
-            Login
+            Create Post
           </button>
-        )}
+
+          {!isLoggedIn && (
+            <button
+              className="login-button"
+              onClick={onLogin}
+            >
+              Login
+            </button>
+          )}
+        </div>
       </nav>
 
       {/* Welcome section */}
@@ -24,6 +50,22 @@ function Home({ isLoggedIn, onLogin }) {
           <p>Discover stories from our community</p>
         </section>
       </main>
+
+      {/* Login message modal for unauthenticated users */}
+      {showLoginMessage && (
+        <div className="modal-overlay">
+          <div className="login-modal">
+            <button
+              className="modal-close"
+              onClick={() => setShowLoginMessage(false)}
+            >
+              ×
+            </button>
+
+            <p>You need to log in to create a post.</p>
+          </div>
+        </div>
+      )}
     </>
   )
 }

@@ -3,6 +3,7 @@ import './App.css'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import Home from './pages/Home'
+import PostCreate from './pages/PostCreate'
 
 function App() {
 
@@ -17,12 +18,26 @@ function App() {
   // Controls whether the registration screen is displayed
   const [showRegister, setShowRegister] = useState(false)
 
+  // Controls whether the post creation screen is displayed
+  const [showPostCreate, setShowPostCreate] = useState(false)
+
+  // Open the post creation screen
+  const handleCreatePost = () => {
+    setShowPostCreate(true)
+  }
+
   return (
     <div className="app">
-      {!showLogin ? (
+      {showPostCreate ? (
+        <PostCreate
+          onCancel={() => setShowPostCreate(false)}
+          onPostCreated={() => setShowPostCreate(false)}
+        />
+      ) : !showLogin ? (
         <Home
           isLoggedIn={isLoggedIn}
           onLogin={() => setShowLogin(true)}
+          onCreatePost={handleCreatePost}
         />
       ) : (
         <>
