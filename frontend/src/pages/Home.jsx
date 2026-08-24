@@ -1,15 +1,18 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 
-function Home({ isLoggedIn, onLogin, onCreatePost }) {
+function Home({ isLoggedIn }) {
 
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
+  
+  const navigate = useNavigate()
 
   // Handle the Create Post button click
   const handleCreatePostClick = () => {
     if (isLoggedIn) {
-      onCreatePost()
+      navigate('/posts/new')
     } else {
       setShowLoginMessage(true)
     }
@@ -35,7 +38,7 @@ function Home({ isLoggedIn, onLogin, onCreatePost }) {
           {!isLoggedIn && (
             <button
               className="login-button"
-              onClick={onLogin}
+               onClick={() => navigate('/login')}
             >
               Login
             </button>

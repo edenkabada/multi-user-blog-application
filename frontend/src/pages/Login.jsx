@@ -1,11 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-// Receive callbacks for navigation between screens
-function Login({
-    onSwitchToRegister,
-    onBackToHome,
-    onLoginSuccess
-}) {
+
+function Login({onLoginSuccess}) {
 
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
@@ -13,6 +10,8 @@ function Login({
 
     // Store login error messages
     const [error, setError] = useState('')
+
+    const navigate = useNavigate()
 
     // Handle form submission and login request
     const handleSubmit = async (e) => {
@@ -50,7 +49,7 @@ function Login({
             // Store the JWT token received from the backend
             localStorage.setItem('access_token', data.access_token)
             onLoginSuccess()
-            onBackToHome()
+            navigate('/')
 
         }
 
@@ -68,7 +67,7 @@ function Login({
 
             <div
                 className="login-logo"
-                onClick={onBackToHome}
+                onClick={() => navigate('/')}
             >
                 Multi User Blog
             </div>
@@ -109,7 +108,7 @@ function Login({
 
                 <p className="register-link">
                     Don't have an account?{' '}
-                    <button onClick={onSwitchToRegister}>
+                    <button onClick={() => navigate('/register')}>
                         Register
                     </button>
                 </p>

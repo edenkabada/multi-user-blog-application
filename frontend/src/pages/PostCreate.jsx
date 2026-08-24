@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-function PostCreate({ onCancel, onPostCreated }) {
+function PostCreate() {
 
     // Manage the post form fields and error message
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
     const [error, setError] = useState('')
+
+    const navigate = useNavigate()
 
     // Validate the form and create the post
     const handleSubmit = async (event) => {
@@ -45,7 +48,7 @@ function PostCreate({ onCancel, onPostCreated }) {
             }
 
             // Return to the home page after successful creation
-            onPostCreated()
+            navigate('/')
 
         } catch {
             setError('Failed to create post. Please try again.')
@@ -57,7 +60,7 @@ function PostCreate({ onCancel, onPostCreated }) {
             <nav className="navbar">
                 <div
                     className="logo"
-                    onClick={onCancel}
+                    onClick={() => navigate('/')}
                 >
                     Multi User Blog
                 </div>
@@ -94,7 +97,7 @@ function PostCreate({ onCancel, onPostCreated }) {
                         <div className="post-create-actions">
                             <button
                                 type="button"
-                                onClick={onCancel}
+                                onClick={() => navigate('/')}
                             >
                                 Cancel
                             </button>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-// Receive callbacks for navigation between screens
-function Register({ onSwitchToLogin, onBackToHome}) {
+
+function Register() {
 
     // Store the values entered in the registration form
     const [username, setUsername] = useState('')
@@ -10,6 +11,8 @@ function Register({ onSwitchToLogin, onBackToHome}) {
 
     // Store registration error messages
     const [error, setError] = useState('')
+
+    const navigate = useNavigate()
 
     // Handle form submission and registration request
     const handleSubmit = async (e) => {
@@ -48,7 +51,7 @@ function Register({ onSwitchToLogin, onBackToHome}) {
         })
 
         if (response.ok) {
-            onSwitchToLogin()
+            navigate('/login')
         }
 
         // Display the error returned by the backend
@@ -65,7 +68,7 @@ function Register({ onSwitchToLogin, onBackToHome}) {
 
         <div
             className="register-logo"
-            onClick={onBackToHome}
+            onClick={() => navigate('/')}
         >
             Multi User Blog
         </div>
@@ -116,7 +119,7 @@ function Register({ onSwitchToLogin, onBackToHome}) {
 
             <p className="login-link">
                 Already have an account?{' '}
-                <button onClick={onSwitchToLogin}>
+                <button onClick={() => navigate('/login')}>
                     Login
                 </button>
             </p>
