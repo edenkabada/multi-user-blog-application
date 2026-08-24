@@ -1,0 +1,146 @@
+.post-create-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 50px 20px;
+  box-sizing: border-box;
+}
+
+.post-create-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.post-create-container h1 {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.post-create-container > p:not(.form-error) {
+  margin: 0 0 30px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.post-create-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-create-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.post-create-container input,
+.post-create-container textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.post-create-container input {
+  margin-bottom: 20px;
+}
+
+.post-create-container textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.post-create-container input:focus,
+.post-create-container textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.form-error {
+  margin: 0 0 20px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.post-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.post-create-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.post-create-actions button[type="button"] {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.post-create-actions button[type="button"]:hover {
+  background-color: #d1d5db;
+}
+
+.post-create-actions button[type="submit"] {
+  background-color: #2563eb;
+  color: white;
+}
+
+.post-create-actions button[type="submit"]:hover {
+  background-color: #1d4ed8;
+}
+
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 16px 20px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .posts-section {
+    padding: 35px 20px;
+  }
+
+  .post-create-page {
+    padding: 30px 20px;
+  }
+
+  .post-create-container {
+    padding: 25px;
+  }
+
+  .post-create-container h1 {
+    font-size: 28px;
+  }
+
+  .post-create-actions {
+    flex-direction: column;
+  }
+
+  .post-create-actions button {
+    width: 100%;
+  }
+}
