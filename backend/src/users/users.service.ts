@@ -1,27 +1,27 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 
-
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
-  // Register a new user and save the user data in the database
   async register(registerUserDto: RegisterUserDto) {
     const { username, email, password } = registerUserDto;
 
-    // Hash the password before storing it in the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = this.userRepository.create({
@@ -30,34 +30,31 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    let savedUser;
-
     try {
-      savedUser = await this.userRepository.save(user);
+      const savedUser = await this.userRepository.save(user);
+      const { password: _password, ...result } = savedUser;
+      return result;
     } catch (error) {
+      // Handle duplicate username or email errors. MySQL's duplicate-entry
+      // error names the violated index, not the column, so look up which
+      // field actually conflicts rather than parsing the error message.
+      if (this.isDuplicateEntryError(error)) {
+        const existing = await this.userRepository.findOne({
+          where: [{ username }, { email }],
+        });
 
-      // Handle duplicate username or email errors
-      if (error.code === 'ER_DUP_ENTRY') {
-        if (error.message.includes('users.username')) {
+        if (existing?.username === username) {
           throw new ConflictException('Username already exists');
         }
-
-        if (error.message.includes('users.email')) {
+        if (existing?.email === email) {
           throw new ConflictException('Email already exists');
         }
+        throw new ConflictException('Username or email is already taken');
       }
-
       throw error;
     }
-
-    // Remove the password from the response
-    const { password: _, ...result } = savedUser;
-
-    return result;
   }
 
-
-  // Authenticate the user and generate an access token
   async login(loginUserDto: LoginUserDto) {
     const { username, password } = loginUserDto;
 
@@ -69,14 +66,12 @@ export class UsersService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    // Compare the entered password with the stored hashed password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    // Create the JWT payload with the user's information
     const payload = {
       sub: user.userId,
       username: user.username,
@@ -89,6 +84,11 @@ export class UsersService {
     };
   }
 
-
+  private isDuplicateEntryError(error: unknown): error is QueryFailedError {
+    return (
+      error instanceof QueryFailedError &&
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        'ER_DUP_ENTRY'
+    );
+  }
 }
-

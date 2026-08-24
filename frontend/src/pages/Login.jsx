@@ -1,63 +1,21 @@
-import { useState } from 'react'
+import useAuthForm from '../hooks/useAuthForm'
+import FormField from '../components/FormField'
 
 // Receive a callback to switch to the registration screen
 function Login({ onSwitchToRegister }) {
+    const { values, setValue, error, success, isSubmitting, submit } = useAuthForm({
+        fields: { username: '', password: '' },
+        requiredFields: ['username', 'password'],
+    })
 
-    // Store the values entered in the login form
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-
-    // Store validation and API response messages
-    const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
-
-    // Handle form submission, validation, and login request
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
-
-        // Validate that all required fields are filled
-        if (!username.trim()) {
-            setError('Username is required')
-            return
-        }
-
-        if (!password.trim()) {
-            setError('Password is required')
-            return
-        }
-
-        // Clear previous error and success messages
-        setError('')
-        setSuccess('')
-
-        // Send the login data to the backend
-        const response = await fetch('http://localhost:3000/users/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                password,
-            }),
-        })
-
-        if (response.ok) {
-            const data = await response.json()
+        submit('/users/login', {
+            successMessage: 'Login successful!',
             // Store the JWT token received from the backend
-            localStorage.setItem('access_token', data.access_token)
-
-            setSuccess('Login successful!')
-        }
-
-        // Display the error returned by the backend
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
-        }
+            onSuccess: (data) => localStorage.setItem('access_token', data.access_token),
+        })
     }
-
 
     return (
         <div>
@@ -66,25 +24,24 @@ function Login({ onSwitchToRegister }) {
             {success && <p>{success}</p>}
             <form onSubmit={handleSubmit}>
 
-                <label htmlFor="username">Username</label>
-                <input
+                <FormField
                     id="username"
-                    type="text"
+                    label="Username"
                     placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={values.username}
+                    onChange={(value) => setValue('username', value)}
                 />
 
-                <label htmlFor="password">Password</label>
-                <input
+                <FormField
                     id="password"
+                    label="Password"
                     type="password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={values.password}
+                    onChange={(value) => setValue('password', value)}
                 />
 
-                <button type="submit">
+                <button type="submit" disabled={isSubmitting}>
                     Login
                 </button>
 

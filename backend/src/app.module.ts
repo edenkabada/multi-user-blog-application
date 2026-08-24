@@ -13,7 +13,7 @@ import { AuthModule } from './auth/auth.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+
     // Configure the connection between the application and the MySQL database
     TypeOrmModule.forRoot({
       type: 'mysql',

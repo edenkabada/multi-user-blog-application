@@ -1,5 +1,11 @@
-// Defines the data required to log in
+import { IsNotEmpty, IsString } from 'class-validator';
+
 export class LoginUserDto {
+  @IsString()
+  @IsNotEmpty()
   username!: string;
+
+  @IsString()
+  @IsNotEmpty()
   password!: string;
 }
