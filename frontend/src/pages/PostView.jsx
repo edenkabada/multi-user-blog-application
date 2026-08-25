@@ -9,7 +9,26 @@ function PostView() {
         !!localStorage.getItem('access_token')
     )
     const { postId } = useParams()
+
     const navigate = useNavigate()
+
+    // Get the ID of the currently logged-in user
+    const getCurrentUserId = () => {
+        const token = localStorage.getItem('access_token')
+
+        if (!token) {
+            return null
+        }
+
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        return payload.sub
+    }
+
+    // Check if the logged-in user owns the post
+    const currentUserId = getCurrentUserId()
+    
+    const isPostOwner =
+        isLoggedIn && Number(post?.userId) === Number(currentUserId)
 
     const handleCreatePostClick = () => {
         if (isLoggedIn) {
@@ -79,18 +98,31 @@ function PostView() {
                             hour: '2-digit',
                             minute: '2-digit',
                         })}
+
+                        {post.updatedAt && ' · Edited'}
                     </p>
 
                     <div className="post-content">
                         {post.content}
                     </div>
 
-                    <button
-                        className="back-home-button"
-                        onClick={() => navigate('/')}
-                    >
-                        ← Back to Home
-                    </button>
+                    <div className="post-view-actions">
+                        <button
+                            className="back-home-button"
+                            onClick={() => navigate('/')}
+                        >
+                            ← Back to Home
+                        </button>
+
+                        {isPostOwner && (
+                            <button
+                                className="edit-post-button"
+                                onClick={() => navigate(`/posts/${post.postId}/edit`)}
+                            >
+                                Edit
+                            </button>
+                        )}
+                    </div>
                 </article>
             </main>
         </>

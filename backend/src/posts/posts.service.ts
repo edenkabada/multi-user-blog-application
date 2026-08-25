@@ -23,7 +23,6 @@ export class PostsService {
             content: createPostDto.content,
         });
 
-        // Save the new post to the database
         return this.postRepository.save(post);
     }
 
@@ -45,6 +44,8 @@ export class PostsService {
             content: post.content,
             createdAt: post.createdAt,
             username: post.user.username,
+            userId: post.userId,
+            updatedAt: post.updatedAt,
         }));
     }
 
@@ -68,6 +69,8 @@ export class PostsService {
             content: post.content,
             createdAt: post.createdAt,
             username: post.user.username,
+            userId: post.userId,
+            updatedAt: post.updatedAt,
         };
     }
 

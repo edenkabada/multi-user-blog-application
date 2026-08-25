@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import PostCreate from './pages/PostCreate'
 import ProtectedRoute from './ProtectedRoute'
 import PostView from './pages/PostView'
+import PostEdit from './pages/PostEdit'
 
 function App() {
 
@@ -57,6 +58,16 @@ function App() {
           <Route
             path="/posts/:postId"
             element={<PostView />}
+          />
+
+          {/* Protect the post editing page */}
+          <Route
+            path="/posts/:postId/edit"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <PostEdit />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </div>

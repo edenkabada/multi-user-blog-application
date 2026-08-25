@@ -79,6 +79,8 @@ function Home({ isLoggedIn }) {
                     day: 'numeric',
                     year: 'numeric',
                   })}
+
+                  {post.updatedAt && ' · Edited'}
                 </p>
 
                 <p className="post-preview">{post.content}</p>
