@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Home.css'
 
@@ -7,7 +7,15 @@ function Home({ isLoggedIn }) {
 
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
-  
+  const [posts, setPosts] = useState([])
+
+  // Fetch posts from the backend
+  useEffect(() => {
+    fetch('http://localhost:3000/posts')
+      .then((response) => response.json())
+      .then((data) => setPosts(data))
+  }, [])
+
   const navigate = useNavigate()
 
   // Handle the Create Post button click
@@ -39,7 +47,7 @@ function Home({ isLoggedIn }) {
           {!isLoggedIn && (
             <button
               className="login-button"
-               onClick={() => navigate('/login')}
+              onClick={() => navigate('/login')}
             >
               Login
             </button>
@@ -47,11 +55,40 @@ function Home({ isLoggedIn }) {
         </div>
       </nav>
 
-      {/* Welcome section */}
       <main>
+        {/* Welcome section */}
         <section className="welcome-section">
           <h1>Welcome to our blog</h1>
           <p>Discover stories from our community</p>
+        </section>
+
+        {/* Display latest posts */}
+        <section className="posts-section">
+          <h2>Latest Posts</h2>
+
+          <div className="posts-list">
+            {posts.map((post) => (
+              <article key={post.postId} className="post-card">
+                <h3>{post.title}</h3>
+
+                <p className="post-author">By {post.username}</p>
+
+                <p className="post-date">
+                  {new Date(post.createdAt).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+
+                <p className="post-preview">{post.content}</p>
+
+                <button onClick={() => navigate(`/posts/${post.postId}`)}>
+                  Read More
+                </button>
+              </article>
+            ))}
+          </div>
         </section>
       </main>
 

@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 import PostCreate from './pages/PostCreate'
 import ProtectedRoute from './ProtectedRoute'
+import PostView from './pages/PostView'
 
 function App() {
 
@@ -50,6 +51,12 @@ function App() {
                 <PostCreate />
               </ProtectedRoute>
             }
+          />
+
+          {/* Display a specific post */}
+          <Route
+            path="/posts/:postId"
+            element={<PostView />}
           />
         </Routes>
       </div>

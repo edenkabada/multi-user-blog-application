@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 // Defines the Post entity and maps it to the Posts table in the database
 @Entity('Posts')
@@ -8,6 +9,10 @@ export class Post {
 
   @Column({ name: 'user_id' })
   userId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column()
   title: string;

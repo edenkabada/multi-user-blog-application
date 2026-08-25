@@ -27,9 +27,48 @@ export class PostsService {
         return this.postRepository.save(post);
     }
 
-    // Retrieve all posts from the database
+    // Retrieve all posts with their authors
     async findAll() {
-        return this.postRepository.find();
+        const posts = await this.postRepository.find({
+            relations: {
+                user: true,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+        });
+        
+        // Return post details with the author's username
+        return posts.map((post) => ({
+            postId: post.postId,
+            title: post.title,
+            content: post.content,
+            createdAt: post.createdAt,
+            username: post.user.username,
+        }));
+    }
+
+    // Retrieve a specific post by its ID
+    async findOne(postId: number) {
+        const post = await this.postRepository.findOne({
+            where: { postId },
+            relations: {
+                user: true,
+            },
+        });
+
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
+
+        // Return post details with the author's username
+        return {
+            postId: post.postId,
+            title: post.title,
+            content: post.content,
+            createdAt: post.createdAt,
+            username: post.user.username,
+        };
     }
 
     // Update an existing post owned by the authenticated user

@@ -10,7 +10,7 @@ export class PostsController {
         private readonly postsService: PostsService,
     ) { }
 
-     // Handle post creation requests from authenticated users
+    // Handle post creation requests from authenticated users
     @UseGuards(JwtAuthGuard)
     @Post()
     createPost(
@@ -25,6 +25,14 @@ export class PostsController {
     @Get()
     findAllPosts() {
         return this.postsService.findAll();
+    }
+
+    // Handle requests to retrieve a specific post
+    @Get(':postId')
+    findOnePost(
+        @Param('postId') postId: string,
+    ) {
+        return this.postsService.findOne(Number(postId));
     }
 
     // Handle post update requests from authenticated users

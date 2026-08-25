@@ -1,0 +1,75 @@
+.post-view-page {
+  padding: 50px 20px;
+}
+
+.post-view-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.post-view-container h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.post-author {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #374151;
+}
+
+.post-date {
+  margin: 0 0 30px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.post-content {
+  margin-bottom: 30px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: #1f2937;
+  white-space: pre-line;
+  text-align: left;
+}
+
+.back-home-button {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.back-home-button:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .post-view-page {
+    padding: 30px 15px;
+  }
+
+  .post-view-container {
+    padding: 25px;
+  }
+
+  .post-view-container h1 {
+    font-size: 30px;
+  }
+}
