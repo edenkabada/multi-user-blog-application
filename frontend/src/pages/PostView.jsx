@@ -4,15 +4,19 @@ import './PostView.css'
 
 function PostView() {
 
+    // State
     const [post, setPost] = useState(null)
     const [isLoggedIn, setIsLoggedIn] = useState(
         !!localStorage.getItem('access_token')
     )
-    const { postId } = useParams()
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [error, setError] = useState('')
 
+    // Route parameters and navigation
+    const { postId } = useParams()
     const navigate = useNavigate()
 
-    // Get the ID of the currently logged-in user
+    // Authentication and post ownership
     const getCurrentUserId = () => {
         const token = localStorage.getItem('access_token')
 
@@ -24,12 +28,12 @@ function PostView() {
         return payload.sub
     }
 
-    // Check if the logged-in user owns the post
     const currentUserId = getCurrentUserId()
-    
+
     const isPostOwner =
         isLoggedIn && Number(post?.userId) === Number(currentUserId)
 
+    // Navigation
     const handleCreatePostClick = () => {
         if (isLoggedIn) {
             navigate('/posts/new')
@@ -38,12 +42,58 @@ function PostView() {
         }
     }
 
+    const handleBackHomeClick = () => {
+        navigate('/')
+    }
+
+    // Fetch post
     useEffect(() => {
         fetch(`http://localhost:3000/posts/${postId}`)
             .then((response) => response.json())
             .then((data) => setPost(data))
     }, [postId])
 
+    // Edit post
+    const handleEditPost = () => {
+        navigate(`/posts/${post.postId}/edit`)
+    }
+
+    // Delete post
+    const handleDeletePost = () => {
+        setError('')
+        setShowDeleteModal(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        const token = localStorage.getItem('access_token')
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/posts/${postId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            )
+
+            if (!response.ok) {
+                throw new Error('Failed to delete post')
+            }
+
+            navigate('/')
+        } catch {
+            setError('Failed to delete post. Please try again.')
+        }
+    }
+
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false)
+        setError('')
+    }
+
+    // Loading state
     if (!post) {
         return <p>Loading...</p>
     }
@@ -54,7 +104,7 @@ function PostView() {
             <nav className="navbar">
                 <div
                     className="logo"
-                    onClick={() => navigate('/')}
+                    onClick={handleBackHomeClick}
                 >
                     Multi User Blog
                 </div>
@@ -106,27 +156,87 @@ function PostView() {
                         {post.content}
                     </div>
 
+                    {/* Post actions */}
                     <div className="post-view-actions">
                         <button
                             className="back-home-button"
-                            onClick={() => navigate('/')}
+                            onClick={handleBackHomeClick}
                         >
                             ← Back to Home
                         </button>
 
                         {isPostOwner && (
-                            <button
-                                className="edit-post-button"
-                                onClick={() => navigate(`/posts/${post.postId}/edit`)}
-                            >
-                                Edit
-                            </button>
+                            <div className="post-owner-actions">
+
+                                {/* Edit post */}
+                                <button
+                                    className="edit-post-button"
+                                    onClick={handleEditPost}
+                                >
+                                    Edit
+                                </button>
+
+                                {/* Delete post */}
+                                <button
+                                    className="delete-post-button"
+                                    onClick={handleDeletePost}
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
                         )}
                     </div>
                 </article>
             </main>
-        </>
 
+            {/* Delete confirmation modal */}
+            {showDeleteModal && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal">
+
+                        <div className="delete-modal-header">
+                            <h2>Delete Post</h2>
+
+                            <button
+                                className="delete-modal-close"
+                                onClick={handleCloseDeleteModal}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <p>
+                            Are you sure you want to delete this post?<br />
+                            This action cannot be undone.
+                        </p>
+
+                        {error && (
+                            <p className="delete-modal-error">
+                                {error}
+                            </p>
+                        )}
+
+                        <div className="delete-modal-actions">
+                            <button
+                                type="button"
+                                onClick={handleCloseDeleteModal}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                            >
+                                Delete
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
+        </>
     )
 }
 

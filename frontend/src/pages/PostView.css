@@ -79,6 +79,150 @@
   color: #111827;
 }
 
+.delete-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-modal-header h2 {
+  margin: 0;
+}
+
+.delete-modal-close {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: #6b7280;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.delete-modal-close:hover {
+  color: #111827;
+}
+
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+.delete-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.delete-modal h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.delete-modal-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.delete-modal-close {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  padding: 4px;
+  border: none;
+  background-color: transparent;
+  color: #6b7280;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.delete-modal-close:hover {
+  color: #111827;
+}
+
+.delete-modal p {
+  margin: 0 0 25px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.delete-modal-actions button {
+  min-width: 90px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.delete-modal-actions button:first-child {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.delete-modal-actions button:first-child:hover {
+  background-color: #d1d5db;
+}
+
+.delete-modal-actions button:last-child {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.delete-modal-actions button:last-child:hover {
+  background-color: #b91c1c;
+}
+
+.delete-post-button {
+  padding: 8px 14px;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #dc2626;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.delete-post-button:hover {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.post-owner-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-modal-error {
+  margin: -10px 0 20px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
 /* Responsive */
 
 @media (max-width: 768px) {
