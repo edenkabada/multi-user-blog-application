@@ -6,9 +6,7 @@ function PostView() {
 
     // State
     const [post, setPost] = useState(null)
-    const [isLoggedIn, setIsLoggedIn] = useState(
-        !!localStorage.getItem('access_token')
-    )
+    const isLoggedIn = !!localStorage.getItem('access_token')
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [error, setError] = useState('')
 
