@@ -26,4 +26,22 @@ export class CommentsService {
 
         return this.commentRepository.save(comment);
     }
+
+    // Retrieves comments for a specific post with the username of each commenter
+    async findByPost(postId: number) {
+        const comments = await this.commentRepository.find({
+            where: { postId },
+            relations: {
+                user: true,
+            },
+            order: { createdAt: 'DESC' },
+        });
+
+        return comments.map((comment) => ({
+            commentId: comment.commentId,
+            content: comment.content,
+            createdAt: comment.createdAt,
+            username: comment.user.username,
+        }));
+    }
 }
