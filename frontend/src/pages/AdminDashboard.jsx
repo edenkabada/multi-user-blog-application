@@ -6,29 +6,32 @@ function AdminDashboard() {
 
     const [users, setUsers] = useState([])
     const [posts, setPosts] = useState([])
+    const [comments, setComments] = useState([])
     const [error, setError] = useState('')
     const [isLoading, setIsLoading] = useState(true)
 
     const navigate = useNavigate()
 
-    // Load the users and posts lists together on mount
+    // Load the users, posts, and comments lists together on mount
     useEffect(() => {
         const token = localStorage.getItem('access_token')
         const headers = { Authorization: `Bearer ${token}` }
 
         const loadDashboard = async () => {
             try {
-                const [usersResponse, postsResponse] = await Promise.all([
+                const [usersResponse, postsResponse, commentsResponse] = await Promise.all([
                     fetch('http://localhost:3000/admin/users', { headers }),
                     fetch('http://localhost:3000/admin/posts', { headers }),
+                    fetch('http://localhost:3000/admin/comments', { headers }),
                 ])
 
-                if (!usersResponse.ok || !postsResponse.ok) {
+                if (!usersResponse.ok || !postsResponse.ok || !commentsResponse.ok) {
                     throw new Error('Failed to load dashboard data')
                 }
 
                 setUsers(await usersResponse.json())
                 setPosts(await postsResponse.json())
+                setComments(await commentsResponse.json())
             } catch {
                 setError('Failed to load dashboard data. Please try again.')
             } finally {
@@ -90,6 +93,35 @@ function AdminDashboard() {
             setPosts((prev) => prev.filter((p) => p.postId !== post.postId))
         } catch {
             setError('Failed to delete post. Please try again.')
+        }
+    }
+
+    // Delete any comment, after confirming
+    const handleDeleteComment = async (comment) => {
+        if (!window.confirm('Delete this comment? This cannot be undone.')) {
+            return
+        }
+
+        const token = localStorage.getItem('access_token')
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/admin/comments/${comment.commentId}`,
+                {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            )
+
+            if (!response.ok) {
+                throw new Error('Failed to delete comment')
+            }
+
+            setComments((prev) =>
+                prev.filter((c) => c.commentId !== comment.commentId)
+            )
+        } catch {
+            setError('Failed to delete comment. Please try again.')
         }
     }
 
@@ -186,6 +218,48 @@ function AdminDashboard() {
                                             <button
                                                 className="admin-delete-button"
                                                 onClick={() => handleDeletePost(post)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section className="admin-dashboard-section">
+                    <h2>Comments ({comments.length})</h2>
+
+                    <div className="admin-table-wrap">
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Comment</th>
+                                    <th>Author</th>
+                                    <th>Post</th>
+                                    <th>Created</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {comments.map((comment) => (
+                                    <tr key={comment.commentId}>
+                                        <td className="admin-table-truncate">{comment.content}</td>
+                                        <td>{comment.username}</td>
+                                        <td className="admin-table-truncate">{comment.postTitle}</td>
+                                        <td>
+                                            {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric',
+                                            })}
+                                        </td>
+                                        <td>
+                                            <button
+                                                className="admin-delete-button"
+                                                onClick={() => handleDeleteComment(comment)}
                                             >
                                                 Delete
                                             </button>

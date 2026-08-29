@@ -60,6 +60,12 @@
   border-bottom: none;
 }
 
+.admin-table-truncate {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .admin-table th {
   color: #6b7280;
   font-weight: 600;

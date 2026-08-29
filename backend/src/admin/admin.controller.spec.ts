@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AdminController } from './admin.controller';
 import { UsersService } from '../users/users.service';
 import { PostsService } from '../posts/posts.service';
+import { CommentsService } from '../comments/comments.service';
 
 describe('AdminController', () => {
   let controller: AdminController;
   let usersService: jest.Mocked<UsersService>;
   let postsService: jest.Mocked<PostsService>;
+  let commentsService: jest.Mocked<CommentsService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,12 +28,20 @@ describe('AdminController', () => {
             adminRemove: jest.fn(),
           },
         },
+        {
+          provide: CommentsService,
+          useValue: {
+            findAllForAdmin: jest.fn(),
+            adminRemove: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     controller = module.get<AdminController>(AdminController);
     usersService = module.get(UsersService);
     postsService = module.get(PostsService);
+    commentsService = module.get(CommentsService);
   });
 
   it('should be defined', () => {
@@ -85,6 +95,26 @@ describe('AdminController', () => {
     const result = await controller.deletePost('1');
 
     expect(postsService.adminRemove).toHaveBeenCalledWith(1);
+    expect(result).toBe(expected);
+  });
+
+  it('getComments delegates to CommentsService', async () => {
+    const expected = [{ commentId: 1, content: 'Nice post!' }];
+    commentsService.findAllForAdmin.mockResolvedValue(expected as never);
+
+    const result = await controller.getComments();
+
+    expect(commentsService.findAllForAdmin).toHaveBeenCalled();
+    expect(result).toBe(expected);
+  });
+
+  it('deleteComment converts the commentId param and removes the comment', async () => {
+    const expected = { message: 'Comment deleted successfully' };
+    commentsService.adminRemove.mockResolvedValue(expected);
+
+    const result = await controller.deleteComment('1');
+
+    expect(commentsService.adminRemove).toHaveBeenCalledWith(1);
     expect(result).toBe(expected);
   });
 });

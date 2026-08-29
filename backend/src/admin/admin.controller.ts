@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { UsersService } from '../users/users.service';
 import { PostsService } from '../posts/posts.service';
+import { CommentsService } from '../comments/comments.service';
 
 // Every route here requires a valid JWT belonging to an admin
 @Controller('admin')
@@ -18,6 +19,7 @@ export class AdminController {
   constructor(
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   // List every user for the dashboard
@@ -48,5 +50,17 @@ export class AdminController {
   @Delete('posts/:postId')
   deletePost(@Param('postId') postId: string) {
     return this.postsService.adminRemove(Number(postId));
+  }
+
+  // List every comment for the dashboard
+  @Get('comments')
+  getComments() {
+    return this.commentsService.findAllForAdmin();
+  }
+
+  // Delete any comment, regardless of who wrote it
+  @Delete('comments/:commentId')
+  deleteComment(@Param('commentId') commentId: string) {
+    return this.commentsService.adminRemove(Number(commentId));
   }
 }
