@@ -1,5 +1,6 @@
 import {
   Injectable,
+  NotFoundException,
   UnauthorizedException,
   ConflictException,
 } from '@nestjs/common';
@@ -73,6 +74,10 @@ export class UsersService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('This account has been blocked');
+    }
+
     // Create the JWT payload with the user's information
     const payload = {
       sub: user.userId,
@@ -85,6 +90,30 @@ export class UsersService {
     return {
       access_token: accessToken,
     };
+  }
+
+  // List every user for the admin dashboard, without their password hash
+  async findAllForAdmin() {
+    const users = await this.userRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+
+    return users.map(({ password: _password, ...result }) => result);
+  }
+
+  // Block or unblock a user's ability to log in
+  async setBlocked(userId: number, isBlocked: boolean) {
+    const user = await this.userRepository.findOne({ where: { userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isBlocked = isBlocked;
+    const savedUser = await this.userRepository.save(user);
+
+    const { password: _password, ...result } = savedUser;
+    return result;
   }
 
   private isDuplicateEntryError(error: unknown): error is QueryFailedError {

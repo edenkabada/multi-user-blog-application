@@ -63,7 +63,7 @@ function AdminLogin({ onLoginSuccess }) {
         // Store the JWT token received from the backend
         localStorage.setItem('access_token', data.access_token)
         onLoginSuccess()
-        navigate('/')
+        navigate('/admin/dashboard')
     }
 
 
