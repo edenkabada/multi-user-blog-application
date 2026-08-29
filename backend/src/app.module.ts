@@ -7,9 +7,12 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    // Load environment variables from the .env file
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    // Configure the connection between the application and the MySQL database
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -18,7 +21,7 @@ import { UsersModule } from './users/users.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     UsersModule,
   ],

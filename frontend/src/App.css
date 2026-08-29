@@ -182,3 +182,11 @@
     border-right-color: var(--border);
   }
 }
+
+/* Position the Login button in the top-right corner */
+.login-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
