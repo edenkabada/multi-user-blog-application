@@ -162,4 +162,21 @@ export class UsersController {
   unfollowUser(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.followsService.unfollow(req.user.userId, Number(id));
   }
+
+  // Report whether the authenticated user already follows :id. Needed so
+  // the frontend can show the correct Follow/Unfollow button state —
+  // nothing else exposes this.
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/follow-status')
+  async getFollowStatus(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const isFollowing = await this.followsService.isFollowing(
+      req.user.userId,
+      Number(id),
+    );
+
+    return { isFollowing };
+  }
 }

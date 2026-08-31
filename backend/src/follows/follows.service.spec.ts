@@ -130,4 +130,29 @@ describe('FollowsService', () => {
       expect(result).toBe(3);
     });
   });
+
+  describe('isFollowing', () => {
+    it('returns true when a follow relationship exists', async () => {
+      followRepository.findOne.mockResolvedValue({
+        followId: 1,
+        followerId: 1,
+        followingId: 2,
+      });
+
+      const result = await service.isFollowing(1, 2);
+
+      expect(followRepository.findOne).toHaveBeenCalledWith({
+        where: { followerId: 1, followingId: 2 },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when no follow relationship exists', async () => {
+      followRepository.findOne.mockResolvedValue(null);
+
+      const result = await service.isFollowing(1, 2);
+
+      expect(result).toBe(false);
+    });
+  });
 });

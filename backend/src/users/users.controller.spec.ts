@@ -16,7 +16,11 @@ describe('UsersController', () => {
   };
   let postsService: { findByUser: jest.Mock };
   let commentsService: { findByUser: jest.Mock };
-  let followsService: { follow: jest.Mock; unfollow: jest.Mock };
+  let followsService: {
+    follow: jest.Mock;
+    unfollow: jest.Mock;
+    isFollowing: jest.Mock;
+  };
 
   beforeEach(async () => {
     usersService = {
@@ -34,6 +38,7 @@ describe('UsersController', () => {
     followsService = {
       follow: jest.fn(),
       unfollow: jest.fn(),
+      isFollowing: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -299,6 +304,27 @@ describe('UsersController', () => {
 
       expect(followsService.unfollow).toHaveBeenCalledWith(1, 2);
       expect(result).toEqual({ message: 'Unfollowed successfully' });
+    });
+  });
+
+  describe('getFollowStatus', () => {
+    it('returns isFollowing: true when the authenticated user follows the target', async () => {
+      followsService.isFollowing.mockResolvedValue(true);
+
+      const req = { user: { userId: 1, username: 'alice' } };
+      const result = await controller.getFollowStatus('2', req);
+
+      expect(followsService.isFollowing).toHaveBeenCalledWith(1, 2);
+      expect(result).toEqual({ isFollowing: true });
+    });
+
+    it('returns isFollowing: false when the authenticated user does not follow the target', async () => {
+      followsService.isFollowing.mockResolvedValue(false);
+
+      const req = { user: { userId: 1, username: 'alice' } };
+      const result = await controller.getFollowStatus('2', req);
+
+      expect(result).toEqual({ isFollowing: false });
     });
   });
 });
