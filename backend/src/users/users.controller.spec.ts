@@ -1,15 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { PostsService } from '../posts/posts.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let usersService: { findMe: jest.Mock; findPublicProfile: jest.Mock };
+  let usersService: {
+    findMe: jest.Mock;
+    findPublicProfile: jest.Mock;
+    userExists: jest.Mock;
+  };
+  let postsService: { findByUser: jest.Mock };
 
   beforeEach(async () => {
     usersService = {
       findMe: jest.fn(),
       findPublicProfile: jest.fn(),
+      userExists: jest.fn(),
+    };
+    postsService = {
+      findByUser: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -18,6 +29,10 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: usersService,
+        },
+        {
+          provide: PostsService,
+          useValue: postsService,
         },
       ],
     }).compile();
@@ -62,6 +77,47 @@ describe('UsersController', () => {
 
       expect(usersService.findPublicProfile).toHaveBeenCalledWith(2);
       expect(result).toEqual(expectedProfile);
+    });
+  });
+
+  describe('getUserPosts', () => {
+    it("returns the user's posts when the user exists", async () => {
+      usersService.userExists.mockResolvedValue(true);
+      const expectedPosts = [
+        {
+          postId: 1,
+          title: 'A',
+          content: 'B',
+          createdAt: new Date(),
+          userId: 2,
+          updatedAt: null,
+        },
+      ];
+      postsService.findByUser.mockResolvedValue(expectedPosts);
+
+      const result = await controller.getUserPosts('2');
+
+      expect(usersService.userExists).toHaveBeenCalledWith(2);
+      expect(postsService.findByUser).toHaveBeenCalledWith(2);
+      expect(result).toEqual(expectedPosts);
+    });
+
+    it('returns an empty array when the user exists but has no posts', async () => {
+      usersService.userExists.mockResolvedValue(true);
+      postsService.findByUser.mockResolvedValue([]);
+
+      const result = await controller.getUserPosts('2');
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws NotFoundException and never calls postsService when the user does not exist', async () => {
+      usersService.userExists.mockResolvedValue(false);
+
+      await expect(controller.getUserPosts('999')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(postsService.findByUser).not.toHaveBeenCalled();
     });
   });
 });

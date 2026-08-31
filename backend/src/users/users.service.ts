@@ -128,4 +128,20 @@ export class UsersService {
       createdAt: user.createdAt,
     };
   }
+
+  // Check whether a user with this id exists, without exposing profile
+  // fields. Used as a 404 guard by endpoints like GET /users/:id/posts
+  // that delegate the actual data-fetching to another service.
+  async userExists(id: number): Promise<boolean> {
+    if (Number.isNaN(id)) {
+      return false;
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { userId: id },
+      select: { userId: true },
+    });
+
+    return !!user;
+  }
 }

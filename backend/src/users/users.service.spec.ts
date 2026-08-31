@@ -112,4 +112,33 @@ describe('UsersService', () => {
       expect(userRepository.findOne).not.toHaveBeenCalled();
     });
   });
+
+  describe('userExists', () => {
+    it('returns true when a user with that id exists', async () => {
+      userRepository.findOne.mockResolvedValue({ userId: 1 });
+
+      const result = await service.userExists(1);
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: 1 },
+        select: { userId: true },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns false when no user with that id exists', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      const result = await service.userExists(999);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a non-numeric id without querying the database', async () => {
+      const result = await service.userExists(NaN);
+
+      expect(result).toBe(false);
+      expect(userRepository.findOne).not.toHaveBeenCalled();
+    });
+  });
 });

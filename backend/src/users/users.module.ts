@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { PostsModule } from '../posts/posts.module';
 
 // Configure the Users module and its dependencies
 @Module({
@@ -13,6 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
       secret: 'your-secret-key',
       signOptions: { expiresIn: '1h' },
     }),
+    PostsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
