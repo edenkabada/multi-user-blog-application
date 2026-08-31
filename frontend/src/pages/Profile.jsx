@@ -16,6 +16,10 @@ function Profile() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  const [posts, setPosts] = useState([])
+  const [comments, setComments] = useState([])
+  const [activeTab, setActiveTab] = useState('posts')
+
   const [isEditing, setIsEditing] = useState(false)
   const [editUsername, setEditUsername] = useState('')
   const [editEmail, setEditEmail] = useState('')
@@ -48,6 +52,23 @@ function Profile() {
       }
     })
   }, [id, isOwnProfile])
+
+  // Load this user's posts and comments for the tabs below (SCRUM-39 and
+  // SCRUM-40). Both endpoints already return results newest-first, so no
+  // client-side sorting is needed here.
+  useEffect(() => {
+    authFetch(`http://localhost:3000/users/${id}/posts`).then((response) => {
+      if (response.ok) {
+        response.json().then((data) => setPosts(data))
+      }
+    })
+
+    authFetch(`http://localhost:3000/users/${id}/comments`).then((response) => {
+      if (response.ok) {
+        response.json().then((data) => setComments(data))
+      }
+    })
+  }, [id])
 
   const handleEditClick = () => {
     setEditUsername(profile.username)
@@ -145,6 +166,70 @@ function Profile() {
               </button>
             )}
           </>
+        )}
+
+        {!isEditing && (
+          <div className="profile-tabs-section">
+            <div className="profile-tabs">
+              <button
+                className={activeTab === 'posts' ? 'active' : ''}
+                onClick={() => setActiveTab('posts')}
+              >
+                Posts
+              </button>
+              <button
+                className={activeTab === 'comments' ? 'active' : ''}
+                onClick={() => setActiveTab('comments')}
+              >
+                Comments
+              </button>
+            </div>
+
+            {activeTab === 'posts' && (
+              <div className="profile-tab-content">
+                {posts.length === 0 && (
+                  <p className="profile-empty-state">No posts yet.</p>
+                )}
+
+                {posts.map((post) => (
+                  <article key={post.postId} className="profile-item-card">
+                    <h3>{post.title}</h3>
+                    <p className="profile-item-date">
+                      {new Date(post.createdAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                    <p className="profile-item-preview">{post.content}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'comments' && (
+              <div className="profile-tab-content">
+                {comments.length === 0 && (
+                  <p className="profile-empty-state">No comments yet.</p>
+                )}
+
+                {comments.map((comment) => (
+                  <article
+                    key={comment.commentId}
+                    className="profile-item-card"
+                  >
+                    <p className="profile-item-preview">{comment.content}</p>
+                    <p className="profile-item-date">
+                      {new Date(comment.createdAt).toLocaleDateString(
+                        'en-US',
+                        { month: 'long', day: 'numeric', year: 'numeric' }
+                      )}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {isOwnProfile && isEditing && (
