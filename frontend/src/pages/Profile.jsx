@@ -18,6 +18,7 @@ function Profile() {
 
   const [posts, setPosts] = useState([])
   const [comments, setComments] = useState([])
+  const [activity, setActivity] = useState([])
   const [activeTab, setActiveTab] = useState('posts')
 
   const [isEditing, setIsEditing] = useState(false)
@@ -53,9 +54,10 @@ function Profile() {
     })
   }, [id, isOwnProfile])
 
-  // Load this user's posts and comments for the tabs below (SCRUM-39 and
-  // SCRUM-40). Both endpoints already return results newest-first, so no
-  // client-side sorting is needed here.
+  // Load this user's posts, comments, and merged activity feed for the
+  // tabs below (SCRUM-39, SCRUM-40, SCRUM-41). All three endpoints
+  // already return results newest-first, so no client-side sorting is
+  // needed here.
   useEffect(() => {
     authFetch(`http://localhost:3000/users/${id}/posts`).then((response) => {
       if (response.ok) {
@@ -66,6 +68,12 @@ function Profile() {
     authFetch(`http://localhost:3000/users/${id}/comments`).then((response) => {
       if (response.ok) {
         response.json().then((data) => setComments(data))
+      }
+    })
+
+    authFetch(`http://localhost:3000/users/${id}/activity`).then((response) => {
+      if (response.ok) {
+        response.json().then((data) => setActivity(data))
       }
     })
   }, [id])
@@ -183,6 +191,12 @@ function Profile() {
               >
                 Comments
               </button>
+              <button
+                className={activeTab === 'activity' ? 'active' : ''}
+                onClick={() => setActiveTab('activity')}
+              >
+                Activity
+              </button>
             </div>
 
             {activeTab === 'posts' && (
@@ -225,6 +239,41 @@ function Profile() {
                         { month: 'long', day: 'numeric', year: 'numeric' }
                       )}
                     </p>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'activity' && (
+              <div className="profile-tab-content">
+                {activity.length === 0 && (
+                  <p className="profile-empty-state">No activity yet.</p>
+                )}
+
+                {activity.map((item) => (
+                  <article
+                    key={`${item.type}-${
+                      item.type === 'post' ? item.postId : item.commentId
+                    }`}
+                    className="profile-item-card"
+                  >
+                    <span
+                      className={`activity-badge activity-badge-${item.type}`}
+                    >
+                      {item.type === 'post' ? 'Post' : 'Comment'}
+                    </span>
+
+                    {item.type === 'post' && <h3>{item.title}</h3>}
+
+                    <p className="profile-item-date">
+                      {new Date(item.createdAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+
+                    <p className="profile-item-preview">{item.content}</p>
                   </article>
                 ))}
               </div>
