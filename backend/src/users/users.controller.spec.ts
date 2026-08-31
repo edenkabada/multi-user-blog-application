@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { PostsService } from '../posts/posts.service';
+import { CommentsService } from '../comments/comments.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -12,6 +13,7 @@ describe('UsersController', () => {
     userExists: jest.Mock;
   };
   let postsService: { findByUser: jest.Mock };
+  let commentsService: { findByUser: jest.Mock };
 
   beforeEach(async () => {
     usersService = {
@@ -20,6 +22,9 @@ describe('UsersController', () => {
       userExists: jest.fn(),
     };
     postsService = {
+      findByUser: jest.fn(),
+    };
+    commentsService = {
       findByUser: jest.fn(),
     };
 
@@ -33,6 +38,10 @@ describe('UsersController', () => {
         {
           provide: PostsService,
           useValue: postsService,
+        },
+        {
+          provide: CommentsService,
+          useValue: commentsService,
         },
       ],
     }).compile();
@@ -118,6 +127,46 @@ describe('UsersController', () => {
         NotFoundException,
       );
       expect(postsService.findByUser).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getUserComments', () => {
+    it("returns the user's comments when the user exists", async () => {
+      usersService.userExists.mockResolvedValue(true);
+      const expectedComments = [
+        {
+          commentId: 1,
+          userId: 2,
+          postId: 5,
+          content: 'Great post',
+          createdAt: new Date(),
+        },
+      ];
+      commentsService.findByUser.mockResolvedValue(expectedComments);
+
+      const result = await controller.getUserComments('2');
+
+      expect(usersService.userExists).toHaveBeenCalledWith(2);
+      expect(commentsService.findByUser).toHaveBeenCalledWith(2);
+      expect(result).toEqual(expectedComments);
+    });
+
+    it('returns an empty array when the user exists but has no comments', async () => {
+      usersService.userExists.mockResolvedValue(true);
+      commentsService.findByUser.mockResolvedValue([]);
+
+      const result = await controller.getUserComments('2');
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws NotFoundException and never calls commentsService when the user does not exist', async () => {
+      usersService.userExists.mockResolvedValue(false);
+
+      await expect(controller.getUserComments('999')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(commentsService.findByUser).not.toHaveBeenCalled();
     });
   });
 });

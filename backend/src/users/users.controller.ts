@@ -13,6 +13,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PostsService } from '../posts/posts.service';
+import { CommentsService } from '../comments/comments.service';
 
 interface AuthenticatedRequest {
   user: { userId: number; username: string };
@@ -23,6 +24,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   // Handle user registration requests
@@ -66,5 +68,20 @@ export class UsersController {
     }
 
     return this.postsService.findByUser(userId);
+  }
+
+  // Return all comments belonging to a specific user, newest first.
+  // Same 404-guard pattern as getUserPosts: existence checked here,
+  // CommentsService stays focused purely on comment-filtering.
+  @Get(':id/comments')
+  async getUserComments(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.commentsService.findByUser(userId);
   }
 }

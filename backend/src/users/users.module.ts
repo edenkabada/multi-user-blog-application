@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { PostsModule } from '../posts/posts.module';
+import { CommentsModule } from '../comments/comments.module';
 
 // Configure the Users module and its dependencies
 @Module({
@@ -15,6 +16,7 @@ import { PostsModule } from '../posts/posts.module';
       signOptions: { expiresIn: '1h' },
     }),
     PostsModule,
+    CommentsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
