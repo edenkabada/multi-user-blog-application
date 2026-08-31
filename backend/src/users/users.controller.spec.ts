@@ -169,4 +169,59 @@ describe('UsersController', () => {
       expect(commentsService.findByUser).not.toHaveBeenCalled();
     });
   });
+
+  describe('getUserActivity', () => {
+    it('merges posts and comments into one feed, tagged by type, sorted newest first', async () => {
+      usersService.userExists.mockResolvedValue(true);
+      postsService.findByUser.mockResolvedValue([
+        {
+          postId: 1,
+          title: 'Oldest post',
+          content: 'A',
+          createdAt: new Date('2026-01-01T00:00:00Z'),
+          userId: 2,
+          updatedAt: null,
+        },
+      ]);
+      commentsService.findByUser.mockResolvedValue([
+        {
+          commentId: 1,
+          userId: 2,
+          postId: 5,
+          content: 'Newest comment',
+          createdAt: new Date('2026-03-01T00:00:00Z'),
+        },
+      ]);
+
+      const result = await controller.getUserActivity('2');
+
+      expect(usersService.userExists).toHaveBeenCalledWith(2);
+      expect(postsService.findByUser).toHaveBeenCalledWith(2);
+      expect(commentsService.findByUser).toHaveBeenCalledWith(2);
+      expect(result).toHaveLength(2);
+      // Newest first: the comment (March) should come before the post (January)
+      expect(result[0]).toMatchObject({ type: 'comment', commentId: 1 });
+      expect(result[1]).toMatchObject({ type: 'post', postId: 1 });
+    });
+
+    it('returns an empty array when the user has no posts or comments', async () => {
+      usersService.userExists.mockResolvedValue(true);
+      postsService.findByUser.mockResolvedValue([]);
+      commentsService.findByUser.mockResolvedValue([]);
+
+      const result = await controller.getUserActivity('2');
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws NotFoundException and never calls postsService/commentsService when the user does not exist', async () => {
+      usersService.userExists.mockResolvedValue(false);
+
+      await expect(controller.getUserActivity('999')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(postsService.findByUser).not.toHaveBeenCalled();
+      expect(commentsService.findByUser).not.toHaveBeenCalled();
+    });
+  });
 });

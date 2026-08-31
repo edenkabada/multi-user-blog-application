@@ -84,4 +84,34 @@ export class UsersController {
 
     return this.commentsService.findByUser(userId);
   }
+
+  // Return a merged, chronological feed of a user's posts and comments.
+  // Reuses PostsService.findByUser (SCRUM-39) and CommentsService.findByUser
+  // (SCRUM-40) as-is — this endpoint only tags and merges their results.
+  @Get(':id/activity')
+  async getUserActivity(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [posts, comments] = await Promise.all([
+      this.postsService.findByUser(userId),
+      this.commentsService.findByUser(userId),
+    ]);
+
+    const activity = [
+      ...posts.map((post) => ({ type: 'post' as const, ...post })),
+      ...comments.map((comment) => ({ type: 'comment' as const, ...comment })),
+    ];
+
+    activity.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return activity;
+  }
 }
