@@ -11,6 +11,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
+import { FollowsService } from '../follows/follows.service';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly followsService: FollowsService,
   ) {}
 
   // Register a new user and save the user data in the database
@@ -91,7 +93,8 @@ export class UsersService {
   }
 
   // Return the authenticated user's own profile. Never includes the
-  // password hash, and only exposes the fields SCRUM-38 specifies.
+  // password hash, and only exposes the fields SCRUM-38 specifies, plus
+  // follower/following counts added in SCRUM-42.
   async findMe(userId: number) {
     const user = await this.userRepository.findOne({ where: { userId } });
 
@@ -99,17 +102,25 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const [followerCount, followingCount] = await Promise.all([
+      this.followsService.getFollowerCount(userId),
+      this.followsService.getFollowingCount(userId),
+    ]);
+
     return {
       userId: user.userId,
       username: user.username,
       email: user.email,
       role: user.role,
       createdAt: user.createdAt,
+      followerCount,
+      followingCount,
     };
   }
 
   // Return public profile fields for any user by id. Deliberately excludes
-  // email as well as password, since this is viewable by anyone.
+  // email as well as password, since this is viewable by anyone. Includes
+  // follower/following counts added in SCRUM-42.
   async findPublicProfile(id: number) {
     if (Number.isNaN(id)) {
       throw new NotFoundException('User not found');
@@ -121,11 +132,18 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const [followerCount, followingCount] = await Promise.all([
+      this.followsService.getFollowerCount(id),
+      this.followsService.getFollowingCount(id),
+    ]);
+
     return {
       userId: user.userId,
       username: user.username,
       role: user.role,
       createdAt: user.createdAt,
+      followerCount,
+      followingCount,
     };
   }
 

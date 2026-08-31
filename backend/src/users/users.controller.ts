@@ -4,6 +4,7 @@ import {
   Body,
   Get,
   Param,
+  Delete,
   UseGuards,
   Request,
   NotFoundException,
@@ -14,6 +15,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PostsService } from '../posts/posts.service';
 import { CommentsService } from '../comments/comments.service';
+import { FollowsService } from '../follows/follows.service';
 
 interface AuthenticatedRequest {
   user: { userId: number; username: string };
@@ -25,6 +27,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
     private readonly commentsService: CommentsService,
+    private readonly followsService: FollowsService,
   ) {}
 
   // Handle user registration requests
@@ -113,5 +116,33 @@ export class UsersController {
     );
 
     return activity;
+  }
+
+  // Follow another user. Self-follow and duplicate-follow rejection are
+  // handled by FollowsService; this only guards that the target user
+  // actually exists, consistent with the other :id-scoped endpoints.
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/follow')
+  async followUser(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const followingId = Number(id);
+    const exists = await this.usersService.userExists(followingId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.followsService.follow(req.user.userId, followingId);
+  }
+
+  // Unfollow another user. No existence check here — unfollowing should
+  // always succeed as a way to clear a stale relationship, even if the
+  // target user account no longer exists.
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/follow')
+  unfollowUser(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.followsService.unfollow(req.user.userId, Number(id));
   }
 }

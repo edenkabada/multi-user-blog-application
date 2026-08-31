@@ -4,14 +4,23 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { FollowsService } from '../follows/follows.service';
 
 describe('UsersService', () => {
   let service: UsersService;
   let userRepository: { findOne: jest.Mock };
+  let followsService: {
+    getFollowerCount: jest.Mock;
+    getFollowingCount: jest.Mock;
+  };
 
   beforeEach(async () => {
     userRepository = {
       findOne: jest.fn(),
+    };
+    followsService = {
+      getFollowerCount: jest.fn().mockResolvedValue(0),
+      getFollowingCount: jest.fn().mockResolvedValue(0),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -25,6 +34,10 @@ describe('UsersService', () => {
           provide: JwtService,
           useValue: { sign: jest.fn() },
         },
+        {
+          provide: FollowsService,
+          useValue: followsService,
+        },
       ],
     }).compile();
 
@@ -36,7 +49,7 @@ describe('UsersService', () => {
   });
 
   describe('findMe', () => {
-    it('returns the profile fields for the authenticated user, without the password', async () => {
+    it('returns the profile fields for the authenticated user, without the password, including follow counts', async () => {
       const createdAt = new Date('2026-01-01T00:00:00Z');
       userRepository.findOne.mockResolvedValue({
         userId: 1,
@@ -48,18 +61,24 @@ describe('UsersService', () => {
         createdAt,
         updatedAt: null,
       });
+      followsService.getFollowerCount.mockResolvedValue(4);
+      followsService.getFollowingCount.mockResolvedValue(2);
 
       const result = await service.findMe(1);
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { userId: 1 },
       });
+      expect(followsService.getFollowerCount).toHaveBeenCalledWith(1);
+      expect(followsService.getFollowingCount).toHaveBeenCalledWith(1);
       expect(result).toEqual({
         userId: 1,
         username: 'alice',
         email: 'alice@example.com',
         role: 'user',
         createdAt,
+        followerCount: 4,
+        followingCount: 2,
       });
       expect(result).not.toHaveProperty('password');
     });
@@ -72,7 +91,7 @@ describe('UsersService', () => {
   });
 
   describe('findPublicProfile', () => {
-    it('returns only public fields for an existing user', async () => {
+    it('returns only public fields for an existing user, including follow counts', async () => {
       const createdAt = new Date('2026-01-01T00:00:00Z');
       userRepository.findOne.mockResolvedValue({
         userId: 2,
@@ -84,14 +103,20 @@ describe('UsersService', () => {
         createdAt,
         updatedAt: null,
       });
+      followsService.getFollowerCount.mockResolvedValue(7);
+      followsService.getFollowingCount.mockResolvedValue(1);
 
       const result = await service.findPublicProfile(2);
 
+      expect(followsService.getFollowerCount).toHaveBeenCalledWith(2);
+      expect(followsService.getFollowingCount).toHaveBeenCalledWith(2);
       expect(result).toEqual({
         userId: 2,
         username: 'bob',
         role: 'user',
         createdAt,
+        followerCount: 7,
+        followingCount: 1,
       });
       expect(result).not.toHaveProperty('password');
       expect(result).not.toHaveProperty('email');

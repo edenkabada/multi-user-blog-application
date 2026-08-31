@@ -4,6 +4,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { PostsService } from '../posts/posts.service';
 import { CommentsService } from '../comments/comments.service';
+import { FollowsService } from '../follows/follows.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -14,6 +15,7 @@ describe('UsersController', () => {
   };
   let postsService: { findByUser: jest.Mock };
   let commentsService: { findByUser: jest.Mock };
+  let followsService: { follow: jest.Mock; unfollow: jest.Mock };
 
   beforeEach(async () => {
     usersService = {
@@ -26,6 +28,10 @@ describe('UsersController', () => {
     };
     commentsService = {
       findByUser: jest.fn(),
+    };
+    followsService = {
+      follow: jest.fn(),
+      unfollow: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -42,6 +48,10 @@ describe('UsersController', () => {
         {
           provide: CommentsService,
           useValue: commentsService,
+        },
+        {
+          provide: FollowsService,
+          useValue: followsService,
         },
       ],
     }).compile();
@@ -222,6 +232,49 @@ describe('UsersController', () => {
       );
       expect(postsService.findByUser).not.toHaveBeenCalled();
       expect(commentsService.findByUser).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('followUser', () => {
+    it('checks the target user exists, then delegates to followsService.follow with follower/following ids', async () => {
+      usersService.userExists.mockResolvedValue(true);
+      followsService.follow.mockResolvedValue({
+        followId: 1,
+        followerId: 1,
+        followingId: 2,
+      });
+
+      const req = { user: { userId: 1, username: 'alice' } };
+      const result = await controller.followUser('2', req);
+
+      expect(usersService.userExists).toHaveBeenCalledWith(2);
+      expect(followsService.follow).toHaveBeenCalledWith(1, 2);
+      expect(result).toEqual({ followId: 1, followerId: 1, followingId: 2 });
+    });
+
+    it('throws NotFoundException and never calls followsService when the target user does not exist', async () => {
+      usersService.userExists.mockResolvedValue(false);
+
+      const req = { user: { userId: 1, username: 'alice' } };
+
+      await expect(controller.followUser('999', req)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(followsService.follow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('unfollowUser', () => {
+    it('delegates to followsService.unfollow with follower/following ids', async () => {
+      followsService.unfollow.mockResolvedValue({
+        message: 'Unfollowed successfully',
+      });
+
+      const req = { user: { userId: 1, username: 'alice' } };
+      const result = await controller.unfollowUser('2', req);
+
+      expect(followsService.unfollow).toHaveBeenCalledWith(1, 2);
+      expect(result).toEqual({ message: 'Unfollowed successfully' });
     });
   });
 });

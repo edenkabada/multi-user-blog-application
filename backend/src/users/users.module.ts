@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { PostsModule } from '../posts/posts.module';
 import { CommentsModule } from '../comments/comments.module';
+import { FollowsModule } from '../follows/follows.module';
 
 // Configure the Users module and its dependencies
 @Module({
@@ -17,6 +18,7 @@ import { CommentsModule } from '../comments/comments.module';
     }),
     PostsModule,
     CommentsModule,
+    FollowsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
