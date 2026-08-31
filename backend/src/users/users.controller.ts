@@ -4,14 +4,18 @@ import {
   Body,
   Get,
   Param,
+  Patch,
   Delete,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
   Request,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PostsService } from '../posts/posts.service';
 import { CommentsService } from '../comments/comments.service';
@@ -49,6 +53,19 @@ export class UsersController {
   @Get('me')
   getMe(@Request() req: AuthenticatedRequest) {
     return this.usersService.findMe(req.user.userId);
+  }
+
+  // Update the authenticated user's own profile (username/email).
+  // Scoped to req.user.userId only — there is no :id in this route, so a
+  // user can never edit anyone else's profile through this endpoint.
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @Patch('me')
+  updateMe(
+    @Body() updateProfileDto: UpdateProfileDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.usersService.updateProfile(req.user.userId, updateProfileDto);
   }
 
   // Return public profile fields for any user by id

@@ -12,6 +12,7 @@ describe('UsersController', () => {
     findMe: jest.Mock;
     findPublicProfile: jest.Mock;
     userExists: jest.Mock;
+    updateProfile: jest.Mock;
   };
   let postsService: { findByUser: jest.Mock };
   let commentsService: { findByUser: jest.Mock };
@@ -22,6 +23,7 @@ describe('UsersController', () => {
       findMe: jest.fn(),
       findPublicProfile: jest.fn(),
       userExists: jest.fn(),
+      updateProfile: jest.fn(),
     };
     postsService = {
       findByUser: jest.fn(),
@@ -78,6 +80,28 @@ describe('UsersController', () => {
       const result = await controller.getMe(req);
 
       expect(usersService.findMe).toHaveBeenCalledWith(1);
+      expect(result).toEqual(expectedProfile);
+    });
+  });
+
+  describe('updateMe', () => {
+    it('calls usersService.updateProfile with the authenticated user id and dto', async () => {
+      const expectedProfile = {
+        userId: 1,
+        username: 'alice2',
+        email: 'alice2@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00Z'),
+        followerCount: 0,
+        followingCount: 0,
+      };
+      usersService.updateProfile.mockResolvedValue(expectedProfile);
+
+      const req = { user: { userId: 1, username: 'alice' } };
+      const dto = { username: 'alice2', email: 'alice2@example.com' };
+      const result = await controller.updateMe(dto, req);
+
+      expect(usersService.updateProfile).toHaveBeenCalledWith(1, dto);
       expect(result).toEqual(expectedProfile);
     });
   });
