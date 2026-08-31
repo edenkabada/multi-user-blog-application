@@ -1,6 +1,8 @@
 import { Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 
-function ProtectedRoute({ isLoggedIn, children }) {
+function ProtectedRoute({ children }) {
+    const { isLoggedIn } = useAuth()
 
     // Redirect unauthenticated users to the home page
     if (!isLoggedIn) {
