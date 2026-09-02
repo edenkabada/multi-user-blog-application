@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -7,15 +12,13 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dto/login-user.dto';
 
-
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   // Register a new user and save the user data in the database
   async register(registerUserDto: RegisterUserDto) {
@@ -35,7 +38,6 @@ export class UsersService {
     try {
       savedUser = await this.userRepository.save(user);
     } catch (error) {
-
       // Handle duplicate username or email errors
       if (error.code === 'ER_DUP_ENTRY') {
         if (error.message.includes('users.username')) {
@@ -55,7 +57,6 @@ export class UsersService {
 
     return result;
   }
-
 
   // Authenticate the user and generate an access token
   async login(loginUserDto: LoginUserDto) {
@@ -89,6 +90,42 @@ export class UsersService {
     };
   }
 
+  // Return the authenticated user's own profile. Never includes the
+  // password hash, and only exposes the fields SCRUM-38 specifies.
+  async findMe(userId: number) {
+    const user = await this.userRepository.findOne({ where: { userId } });
 
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      userId: user.userId,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+  }
+
+  // Return public profile fields for any user by id. Deliberately excludes
+  // email as well as password, since this is viewable by anyone.
+  async findPublicProfile(id: number) {
+    if (Number.isNaN(id)) {
+      throw new NotFoundException('User not found');
+    }
+
+    const user = await this.userRepository.findOne({ where: { userId: id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      userId: user.userId,
+      username: user.username,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+  }
 }
-
