@@ -6,11 +6,13 @@ import {
   Param,
   UseGuards,
   Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PostsService } from '../posts/posts.service';
 
 interface AuthenticatedRequest {
   user: { userId: number; username: string };
@@ -18,7 +20,10 @@ interface AuthenticatedRequest {
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly postsService: PostsService,
+  ) {}
 
   // Handle user registration requests
   @Post('register')
@@ -45,5 +50,21 @@ export class UsersController {
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.usersService.findPublicProfile(Number(id));
+  }
+
+  // Return all posts belonging to a specific user, newest first.
+  // 404s if the user doesn't exist; returns [] if they exist but have
+  // no posts. Existence is checked here so PostsService can stay focused
+  // purely on post-filtering, per SCRUM-39's scope.
+  @Get(':id/posts')
+  async getUserPosts(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.postsService.findByUser(userId);
   }
 }
