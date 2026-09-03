@@ -20,6 +20,14 @@ describe('UsersService', () => {
     password: 'password123',
   };
 
+  const makeDuplicateEntryError = () => {
+    const error = new QueryFailedError('', [], new Error('Duplicate entry'));
+    (error as unknown as { driverError: { code: string } }).driverError = {
+      code: 'ER_DUP_ENTRY',
+    };
+    return error;
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -50,57 +58,77 @@ describe('UsersService', () => {
     expect(service).toBeDefined();
   });
 
-  it('hashes the password before saving and never returns it', async () => {
-    const createdUser = { ...registerDto, userId: 1 } as User;
-    repository.create.mockReturnValue(createdUser);
-    repository.save.mockResolvedValue({
-      ...createdUser,
-      password: 'hashed-password',
+  describe('register', () => {
+    it('hashes the password before saving and never returns it', async () => {
+      const createdUser = { ...registerDto, userId: 1 } as User;
+      repository.create.mockReturnValue(createdUser);
+      repository.save.mockResolvedValue({
+        ...createdUser,
+        password: 'hashed-password',
+      });
+
+      const result = await service.register(registerDto);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: registerDto.username,
+          email: registerDto.email,
+        }),
+      );
+      const savedPassword = repository.create.mock.calls[0][0].password;
+      expect(savedPassword).not.toBe(registerDto.password);
+      expect(
+        await bcrypt.compare(registerDto.password, savedPassword as string),
+      ).toBe(true);
+      expect(result).not.toHaveProperty('password');
     });
 
-    const result = await service.register(registerDto);
-
-    expect(repository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
+    it('throws ConflictException naming the username when that is what conflicts', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      // The service re-queries by username/email to find which one actually
+      // conflicts, rather than parsing the DB error message.
+      repository.findOne.mockResolvedValue({
         username: registerDto.username,
+        email: 'someone-else@example.com',
+      } as User);
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Username already exists',
+      );
+    });
+
+    it('throws ConflictException naming the email when that is what conflicts', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      repository.findOne.mockResolvedValue({
+        username: 'someone-else',
         email: registerDto.email,
-      }),
-    );
-    const savedPassword = repository.create.mock.calls[0][0].password;
-    expect(savedPassword).not.toBe(registerDto.password);
-    expect(
-      await bcrypt.compare(registerDto.password, savedPassword as string),
-    ).toBe(true);
-    expect(result).not.toHaveProperty('password');
-  });
+      } as User);
 
-  it('throws a ConflictException when the username or email is already taken', async () => {
-    repository.create.mockReturnValue({ ...registerDto } as User);
-    const duplicateError = new QueryFailedError(
-      '',
-      [],
-      new Error('Duplicate entry'),
-    );
-    (
-      duplicateError as unknown as { driverError: { code: string } }
-    ).driverError = {
-      code: 'ER_DUP_ENTRY',
-    };
-    repository.save.mockRejectedValue(duplicateError);
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Email already exists',
+      );
+    });
 
-    await expect(service.register(registerDto)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
-  });
+    it('throws a generic ConflictException if the conflicting row cannot be found', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      repository.findOne.mockResolvedValue(null);
 
-  it('rethrows unexpected errors', async () => {
-    repository.create.mockReturnValue({ ...registerDto } as User);
-    const unexpectedError = new Error('connection lost');
-    repository.save.mockRejectedValue(unexpectedError);
+      await expect(service.register(registerDto)).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+    });
 
-    await expect(service.register(registerDto)).rejects.toThrow(
-      'connection lost',
-    );
+    it('rethrows unexpected errors', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(new Error('connection lost'));
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'connection lost',
+      );
+    });
   });
 
   describe('login', () => {
@@ -109,12 +137,13 @@ describe('UsersService', () => {
       password: 'password123',
     };
 
-    it('returns an access token when credentials are valid', async () => {
+    it('returns an access token including the user role', async () => {
       const hashedPassword = await bcrypt.hash(loginDto.password, 10);
       repository.findOne.mockResolvedValue({
         userId: 1,
         username: loginDto.username,
         password: hashedPassword,
+        role: 'user',
       } as User);
       jwtService.sign.mockReturnValue('signed-jwt');
 
@@ -126,6 +155,7 @@ describe('UsersService', () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 1,
         username: loginDto.username,
+        role: 'user',
       });
       expect(result).toEqual({ access_token: 'signed-jwt' });
     });
@@ -145,6 +175,7 @@ describe('UsersService', () => {
         userId: 1,
         username: loginDto.username,
         password: hashedPassword,
+        role: 'user',
       } as User);
 
       await expect(service.login(loginDto)).rejects.toBeInstanceOf(

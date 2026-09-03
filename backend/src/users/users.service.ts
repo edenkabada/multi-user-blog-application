@@ -19,9 +19,11 @@ export class UsersService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // Register a new user and save the user data in the database
   async register(registerUserDto: RegisterUserDto) {
     const { username, email, password } = registerUserDto;
 
+    // Hash the password before storing it in the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = this.userRepository.create({
@@ -32,6 +34,8 @@ export class UsersService {
 
     try {
       const savedUser = await this.userRepository.save(user);
+
+      // Remove the password from the response
       const { password: _password, ...result } = savedUser;
       return result;
     } catch (error) {
@@ -55,6 +59,7 @@ export class UsersService {
     }
   }
 
+  // Authenticate the user and generate an access token
   async login(loginUserDto: LoginUserDto) {
     const { username, password } = loginUserDto;
 
@@ -66,15 +71,18 @@ export class UsersService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    // Compare the entered password with the stored hashed password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    // Create the JWT payload with the user's information
     const payload = {
       sub: user.userId,
       username: user.username,
+      role: user.role,
     };
 
     const accessToken = this.jwtService.sign(payload);

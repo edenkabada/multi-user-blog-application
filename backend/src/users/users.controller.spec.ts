@@ -46,10 +46,7 @@ describe('UsersController', () => {
   });
 
   it('delegates login to UsersService and returns its result', async () => {
-    const dto: LoginUserDto = {
-      username: 'alon',
-      password: 'password123',
-    };
+    const dto: LoginUserDto = { username: 'alon', password: 'password123' };
     const expected = { access_token: 'signed-jwt' };
     service.login.mockResolvedValue(expected);
 

@@ -1,0 +1,133 @@
+.post-edit-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 50px 20px;
+  box-sizing: border-box;
+}
+
+.post-edit-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.post-edit-container h1 {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.post-edit-container > p:not(.form-error) {
+  margin: 0 0 30px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.post-edit-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-edit-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.post-edit-container input,
+.post-edit-container textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.post-edit-container input {
+  margin-bottom: 20px;
+}
+
+.post-edit-container textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.post-edit-container input:focus,
+.post-edit-container textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.form-error {
+  margin: 0 0 20px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.post-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.post-edit-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.post-edit-actions button[type="button"] {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.post-edit-actions button[type="button"]:hover {
+  background-color: #d1d5db;
+}
+
+.post-edit-actions button[type="submit"] {
+  background-color: #2563eb;
+  color: white;
+}
+
+.post-edit-actions button[type="submit"]:hover {
+  background-color: #1d4ed8;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+  .post-edit-page {
+    padding: 30px 20px;
+  }
+
+  .post-edit-container {
+    padding: 25px;
+  }
+
+  .post-edit-container h1 {
+    font-size: 28px;
+  }
+
+  .post-edit-actions {
+    flex-direction: column;
+  }
+
+  .post-edit-actions button {
+    width: 100%;
+  }  
+}

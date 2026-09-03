@@ -4,15 +4,15 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Post } from '../../posts/entities/post.entity';
 
-// Defines the Post entity and maps it to the Posts table in the database
-@Entity('Posts')
-export class Post {
-  @PrimaryGeneratedColumn({ name: 'post_id' })
-  postId: number;
+// Defines the Comment entity and maps it to the Comments table in the database
+@Entity('Comments')
+export class Comment {
+  @PrimaryGeneratedColumn({ name: 'comment_id' })
+  commentId: number;
 
   @Column({ name: 'user_id' })
   userId: number;
@@ -21,10 +21,14 @@ export class Post {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
-  title: string;
+  @Column({ name: 'post_id' })
+  postId: number;
 
-  @Column({ type: 'varchar', length: 5000 })
+  @ManyToOne(() => Post)
+  @JoinColumn({ name: 'post_id' })
+  post: Post;
+
+  @Column({ type: 'varchar', length: 1000 })
   content: string;
 
   @Column({
@@ -33,11 +37,4 @@ export class Post {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
-
-  @UpdateDateColumn({
-    name: 'updated_at',
-    type: 'timestamp',
-    nullable: true,
-  })
-  updatedAt: Date;
 }

@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Post } from '../../posts/entities/post.entity';
 
 // Defines the User entity and maps it to the Users table in the database
 @Entity('Users')
@@ -30,4 +31,7 @@ export class User {
 
   @Column({ name: 'updated_at', type: 'timestamp', nullable: true })
   updatedAt: Date;
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 }
