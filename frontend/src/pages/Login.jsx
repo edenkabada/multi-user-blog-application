@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Login.css'
 
-function Login({onLoginSuccess}) {
+function Login({ onLoginSuccess }) {
 
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
@@ -10,6 +10,7 @@ function Login({onLoginSuccess}) {
 
     // Store login error messages
     const [error, setError] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const navigate = useNavigate()
 
@@ -30,34 +31,36 @@ function Login({onLoginSuccess}) {
 
         // Clear previous error message
         setError('')
+        setIsSubmitting(true)
 
-        // Send the login data to the backend
-        const response = await fetch('http://localhost:3000/users/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                password,
-            }),
-        })
+        try {
+            // Send the login data to the backend
+            const response = await fetch('http://localhost:3000/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    password,
+                }),
+            })
 
-        if (response.ok) {
-            const data = await response.json()
-            
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                setError(data?.message || 'Login failed. Please try again.')
+                return
+            }
+
             // Store the JWT token received from the backend
             localStorage.setItem('access_token', data.access_token)
             onLoginSuccess()
             navigate('/')
-
-        }
-
-        // Display the error returned by the backend
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
         }
     }
 
@@ -100,8 +103,8 @@ function Login({onLoginSuccess}) {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <button type="submit">
-                        Login
+                    <button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Logging in...' : 'Login'}
                     </button>
 
                 </form>
