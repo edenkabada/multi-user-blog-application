@@ -1,18 +1,21 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import './Register.css'
 
-// Receive a callback to switch to the login screen
-function Register({ onSwitchToLogin }) {
+function Register() {
 
     // Store the values entered in the registration form
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
-    // Store validation and API response messages
+    // Store registration error messages
     const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Handle form submission, validation, and registration request
+    const navigate = useNavigate()
+
+    // Handle form submission and registration request
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -32,43 +35,62 @@ function Register({ onSwitchToLogin }) {
             return
         }
 
-        // Clear previous error and success messages
+        // Clear previous error message
         setError('')
-        setSuccess('')
+        setIsSubmitting(true)
 
-        // Send the registration data to the backend
-        const response = await fetch('http://localhost:3000/users/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-            }),
-        })
+        try {
+            // Send the registration data to the backend
+            const response = await fetch('http://localhost:3000/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                }),
+            })
 
-        if (response.ok) {
-            setSuccess('Registration successful!')
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                const message = Array.isArray(data?.message)
+                    ? data.message.join(', ')
+                    : data?.message || 'Registration failed. Please try again.'
+                setError(message)
+                return
+            }
+
+            navigate('/login')
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
         }
-
-        // Display the error returned by the backend
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
-        }
-
     }
 
     return (
-        <div>
-            <h1>Register</h1>
-            {error && <p>{error}</p>}
-            {success && <p>{success}</p>}
+    <div className="register-page">
+
+        <div
+            className="register-logo"
+            onClick={() => navigate('/')}
+        >
+            Multi User Blog
+        </div>
+
+        <div className="register-container">
+
+            <h1>Create Account</h1>
+
+            {error && <p className="error-message">{error}</p>}
+
             <form onSubmit={handleSubmit}>
+
                 <label htmlFor="username">Username</label>
+
                 <input
                     id="username"
                     type="text"
@@ -78,6 +100,7 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <label htmlFor="email">Email</label>
+
                 <input
                     id="email"
                     type="email"
@@ -87,6 +110,7 @@ function Register({ onSwitchToLogin }) {
                 />
 
                 <label htmlFor="password">Password</label>
+
                 <input
                     id="password"
                     type="password"
@@ -95,21 +119,22 @@ function Register({ onSwitchToLogin }) {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button type="submit">
-                    Register
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Registering...' : 'Register'}
                 </button>
 
             </form>
 
-            {/* Allow the user to switch to the Login screen */}
-            <p>
+            <p className="login-link">
                 Already have an account?{' '}
-                <button onClick={onSwitchToLogin}>
+                <button onClick={() => navigate('/login')}>
                     Login
                 </button>
             </p>
+
         </div>
-    )
+    </div>
+)
 }
 
 export default Register
