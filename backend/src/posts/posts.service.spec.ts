@@ -56,6 +56,43 @@ describe('PostsService', () => {
     });
   });
 
+  describe('findAll', () => {
+    it('returns every post with its author, newest first', async () => {
+      const posts = [
+        {
+          postId: 2,
+          title: 'Newer',
+          content: 'B',
+          userId: user.userId,
+          user: { username: user.username },
+          createdAt: new Date('2026-01-02'),
+          updatedAt: null,
+        },
+        {
+          postId: 1,
+          title: 'Older',
+          content: 'A',
+          userId: user.userId,
+          user: { username: user.username },
+          createdAt: new Date('2026-01-01'),
+          updatedAt: null,
+        },
+      ] as unknown as Post[];
+      repository.find.mockResolvedValue(posts);
+
+      const result = await service.findAll();
+
+      expect(repository.find).toHaveBeenCalledWith({
+        relations: { user: true },
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toEqual([
+        expect.objectContaining({ postId: 2, username: user.username }),
+        expect.objectContaining({ postId: 1, username: user.username }),
+      ]);
+    });
+  });
+
   describe('findOne', () => {
     it('returns the post with the author username', async () => {
       repository.findOne.mockResolvedValue({
