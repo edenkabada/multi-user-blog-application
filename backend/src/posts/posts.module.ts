@@ -7,11 +7,8 @@ import { AuthModule } from '../auth/auth.module';
 
 // Configure the Posts module and its dependencies
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Post]),
-    AuthModule
-  ],
+  imports: [TypeOrmModule.forFeature([Post]), AuthModule],
   controllers: [PostsController],
   providers: [PostsService],
 })
-export class PostsModule { }
+export class PostsModule {}
