@@ -24,6 +24,14 @@ describe('UsersService', () => {
     password: 'password123',
   };
 
+  const makeDuplicateEntryError = () => {
+    const error = new QueryFailedError('', [], new Error('Duplicate entry'));
+    (error as unknown as { driverError: { code: string } }).driverError = {
+      code: 'ER_DUP_ENTRY',
+    };
+    return error;
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,6 +74,12 @@ describe('UsersService', () => {
 
       const result = await service.register(registerDto);
 
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: registerDto.username,
+          email: registerDto.email,
+        }),
+      );
       const savedPassword = repository.create.mock.calls[0][0].password;
       expect(savedPassword).not.toBe(registerDto.password);
       expect(
@@ -74,17 +88,38 @@ describe('UsersService', () => {
       expect(result).not.toHaveProperty('password');
     });
 
-    it('throws a ConflictException naming the field when username is already taken', async () => {
+    it('throws ConflictException naming the username when that is what conflicts', async () => {
       repository.create.mockReturnValue({ ...registerDto } as User);
-      const duplicateError = new QueryFailedError(
-        '',
-        [],
-        new Error("Duplicate entry 'alon' for key 'users.username'"),
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      // The service re-queries by username/email to find which one actually
+      // conflicts, rather than parsing the DB error message.
+      repository.findOne.mockResolvedValue({
+        username: registerDto.username,
+        email: 'someone-else@example.com',
+      } as User);
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Username already exists',
       );
-      (
-        duplicateError as unknown as { driverError: { code: string } }
-      ).driverError = { code: 'ER_DUP_ENTRY' };
-      repository.save.mockRejectedValue(duplicateError);
+    });
+
+    it('throws ConflictException naming the email when that is what conflicts', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      repository.findOne.mockResolvedValue({
+        username: 'someone-else',
+        email: registerDto.email,
+      } as User);
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Email already exists',
+      );
+    });
+
+    it('throws a generic ConflictException if the conflicting row cannot be found', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makeDuplicateEntryError());
+      repository.findOne.mockResolvedValue(null);
 
       await expect(service.register(registerDto)).rejects.toBeInstanceOf(
         ConflictException,
@@ -119,6 +154,9 @@ describe('UsersService', () => {
 
       const result = await service.login(loginDto);
 
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { username: loginDto.username },
+      });
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 1,
         username: loginDto.username,

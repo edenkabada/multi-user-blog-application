@@ -10,6 +10,9 @@ function PostView() {
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [error, setError] = useState('')
 
+    const [commentContent, setCommentContent] = useState('')
+    const [commentError, setCommentError] = useState('')
+
     // Route parameters and navigation
     const { postId } = useParams()
     const navigate = useNavigate()
@@ -91,10 +94,48 @@ function PostView() {
         setError('')
     }
 
+    // Add comment
+    const handleAddComment = async (event) => {
+        event.preventDefault()
+        setCommentError('')
+
+        if (!commentContent.trim()) {
+            setCommentError('Comment cannot be empty.')
+            return
+        }
+
+        const token = localStorage.getItem('access_token')
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/comments/${postId}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        content: commentContent,
+                    }),
+                }
+            )
+
+            if (!response.ok) {
+                throw new Error('Failed to add comment')
+            }
+
+            setCommentContent('')
+        } catch {
+            setCommentError('Failed to add comment. Please try again.')
+        }
+    }
+
     // Loading state
     if (!post) {
         return <p>Loading...</p>
     }
+
 
     return (
         <>
@@ -186,6 +227,33 @@ function PostView() {
                         )}
                     </div>
                 </article>
+                {/* Comment creation */}
+                {isLoggedIn && (
+                    <section className="comment-create-section">
+                        <form onSubmit={handleAddComment}>
+                            <textarea
+                                placeholder="Write a comment..."
+                                value={commentContent}
+                                onChange={(event) =>
+                                    setCommentContent(event.target.value)
+                                }
+                            />
+                            {/* Validation and API error message */}
+                            {commentError && (
+                                <p className="comment-error">
+                                    {commentError}
+                                </p>
+                            )}
+                            
+                            {/* Submit comment */}
+                            <div className="comment-create-actions">
+                                <button type="submit">
+                                    Post Comment
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                )}
             </main>
 
             {/* Delete confirmation modal */}

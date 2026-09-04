@@ -1,8 +1,8 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
@@ -40,17 +40,22 @@ export class UsersService {
       const { password: _password, ...result } = savedUser;
       return result;
     } catch (error) {
-      // Handle duplicate username or email errors
+      // Handle duplicate username or email errors. MySQL's duplicate-entry
+      // error names the violated index, not the column, so look up which
+      // field actually conflicts rather than parsing the error message.
       if (this.isDuplicateEntryError(error)) {
-        if (error.message.includes('users.username')) {
+        const existing = await this.userRepository.findOne({
+          where: [{ username }, { email }],
+        });
+
+        if (existing?.username === username) {
           throw new ConflictException('Username already exists');
         }
-        if (error.message.includes('users.email')) {
+        if (existing?.email === email) {
           throw new ConflictException('Email already exists');
         }
         throw new ConflictException('Username or email is already taken');
       }
-
       throw error;
     }
   }
