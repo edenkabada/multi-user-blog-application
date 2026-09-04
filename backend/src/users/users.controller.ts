@@ -3,13 +3,9 @@ import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 
-
 @Controller('users')
 export class UsersController {
-
-  constructor(
-    private readonly usersService: UsersService,
-  ) { }
+  constructor(private readonly usersService: UsersService) {}
 
   // Handle user registration requests
   @Post('register')
@@ -22,5 +18,4 @@ export class UsersController {
   login(@Body() loginUserDto: LoginUserDto) {
     return this.usersService.login(loginUserDto);
   }
-
 }
