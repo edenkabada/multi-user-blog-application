@@ -146,4 +146,25 @@ describe('PostsService', () => {
       expect(repository.remove).not.toHaveBeenCalled();
     });
   });
+
+  describe('adminRemove', () => {
+    it('removes the post regardless of who owns it', async () => {
+      const existingPost = { postId: 1, userId: otherUser.userId } as Post;
+      repository.findOne.mockResolvedValue(existingPost);
+
+      const result = await service.adminRemove(1);
+
+      expect(repository.remove).toHaveBeenCalledWith(existingPost);
+      expect(result).toEqual({ message: 'Post deleted successfully' });
+    });
+
+    it('throws NotFoundException when the post does not exist', async () => {
+      repository.findOne.mockResolvedValue(null);
+
+      await expect(service.adminRemove(999)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(repository.remove).not.toHaveBeenCalled();
+    });
+  });
 });
