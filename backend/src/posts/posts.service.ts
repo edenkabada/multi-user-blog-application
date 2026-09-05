@@ -125,13 +125,7 @@ export class PostsService {
 
   // Delete an existing post owned by the authenticated user
   async remove(postId: number, user: { userId: number; username: string }) {
-    const post = await this.postRepository.findOne({
-      where: { postId },
-    });
-
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
+    const post = await this.findPostOrThrow(postId);
 
     if (post.userId !== user.userId) {
       throw new ForbiddenException('You are not allowed to delete this post');
@@ -142,5 +136,28 @@ export class PostsService {
     return {
       message: 'Post deleted successfully',
     };
+  }
+
+  // Delete any post, regardless of ownership -- for admin moderation only.
+  // Callers are responsible for ensuring the requester is actually an admin.
+  async adminRemove(postId: number) {
+    const post = await this.findPostOrThrow(postId);
+    await this.postRepository.remove(post);
+
+    return {
+      message: 'Post deleted successfully',
+    };
+  }
+
+  private async findPostOrThrow(postId: number): Promise<Post> {
+    const post = await this.postRepository.findOne({
+      where: { postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return post;
   }
 }
