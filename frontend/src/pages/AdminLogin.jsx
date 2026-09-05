@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './Login.css'
+import './AdminLogin.css'
 
-function Login({ onLoginSuccess }) {
+function AdminLogin({ onLoginSuccess }) {
 
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
@@ -10,11 +10,10 @@ function Login({ onLoginSuccess }) {
 
     // Store login error messages
     const [error, setError] = useState('')
-    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const navigate = useNavigate()
 
-    // Handle form submission and login request
+    // Handle form submission and admin login request
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -31,53 +30,56 @@ function Login({ onLoginSuccess }) {
 
         // Clear previous error message
         setError('')
-        setIsSubmitting(true)
 
-        try {
-            // Send the login data to the backend
-            const response = await fetch('http://localhost:3000/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username,
-                    password,
-                }),
-            })
+        // Admin login uses the same endpoint as regular login -- role is
+        // checked below, after authentication, not at this request
+        const response = await fetch('http://localhost:3000/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username,
+                password,
+            }),
+        })
 
-            const data = await response.json().catch(() => null)
-
-            if (!response.ok) {
-                setError(data?.message || 'Login failed. Please try again.')
-                return
-            }
-
-            // Store the JWT token received from the backend
-            localStorage.setItem('access_token', data.access_token)
-            onLoginSuccess()
-            navigate('/')
-        } catch {
-            setError('Unable to reach the server. Please try again.')
-        } finally {
-            setIsSubmitting(false)
+        // Display the error returned by the backend
+        if (!response.ok) {
+            const data = await response.json()
+            setError(data.message)
+            return
         }
+
+        const data = await response.json()
+        const payload = JSON.parse(atob(data.access_token.split('.')[1]))
+
+        // Only accounts with the admin role are allowed past this page
+        if (payload.role !== 'admin') {
+            setError('This account does not have admin access.')
+            return
+        }
+
+        // Store the JWT token received from the backend
+        localStorage.setItem('access_token', data.access_token)
+        onLoginSuccess()
+        navigate('/admin/dashboard')
     }
 
 
     return (
-        <div className="login-page">
+        <div className="admin-login-page">
 
             <div
-                className="login-logo"
+                className="admin-login-logo"
                 onClick={() => navigate('/')}
             >
                 Multi User Blog
             </div>
 
-            <div className="login-container">
+            <div className="admin-login-container">
 
-                <h1>Login</h1>
+                <h1>Admin Login</h1>
 
                 {error && <p className="error-message">{error}</p>}
 
@@ -103,22 +105,15 @@ function Login({ onLoginSuccess }) {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Logging in...' : 'Login'}
+                    <button type="submit">
+                        Login
                     </button>
 
                 </form>
-
-                <p className="register-link">
-                    Don't have an account?{' '}
-                    <button onClick={() => navigate('/register')}>
-                        Register
-                    </button>
-                </p>
 
             </div>
         </div>
     )
 
 }
-export default Login
+export default AdminLogin
