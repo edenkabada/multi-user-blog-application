@@ -5,10 +5,14 @@ import { UsersService } from './users.service';
 import { PostsService } from '../posts/posts.service';
 import { CommentsService } from '../comments/comments.service';
 import { FollowsService } from '../follows/follows.service';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: {
+    register: jest.Mock;
+    login: jest.Mock;
     findMe: jest.Mock;
     findPublicProfile: jest.Mock;
     userExists: jest.Mock;
@@ -20,6 +24,8 @@ describe('UsersController', () => {
 
   beforeEach(async () => {
     usersService = {
+      register: jest.fn(),
+      login: jest.fn(),
       findMe: jest.fn(),
       findPublicProfile: jest.fn(),
       userExists: jest.fn(),
@@ -63,6 +69,32 @@ describe('UsersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('delegates registration to UsersService and returns its result', async () => {
+    const dto: RegisterUserDto = {
+      username: 'alon',
+      email: 'alon@example.com',
+      password: 'password123',
+    };
+    const expected = { userId: 1, username: dto.username, email: dto.email };
+    usersService.register.mockResolvedValue(expected);
+
+    const result = await controller.register(dto);
+
+    expect(usersService.register).toHaveBeenCalledWith(dto);
+    expect(result).toBe(expected);
+  });
+
+  it('delegates login to UsersService and returns its result', async () => {
+    const dto: LoginUserDto = { username: 'alon', password: 'password123' };
+    const expected = { access_token: 'signed-jwt' };
+    usersService.login.mockResolvedValue(expected);
+
+    const result = await controller.login(dto);
+
+    expect(usersService.login).toHaveBeenCalledWith(dto);
+    expect(result).toBe(expected);
   });
 
   describe('getMe', () => {

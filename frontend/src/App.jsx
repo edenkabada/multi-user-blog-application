@@ -3,6 +3,8 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Register from './pages/Register'
 import Login from './pages/Login'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
 import Home from './pages/Home'
 import PostCreate from './pages/PostCreate'
 import ProtectedRoute from './ProtectedRoute'
@@ -42,6 +44,26 @@ function App() {
           <Route
             path="/register"
             element={<Register />}
+          />
+
+          {/* Display the Admin Login page */}
+          <Route
+            path="/admin/login"
+            element={
+              <AdminLogin
+                onLoginSuccess={() => setIsLoggedIn(true)}
+              />
+            }
+          />
+
+          {/* Protect the Admin Dashboard page */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn} adminOnly>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
           />
 
           {/* Protect the Post Creation page */}
