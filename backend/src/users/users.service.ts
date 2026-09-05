@@ -1,11 +1,11 @@
 import {
-  Injectable,
-  UnauthorizedException,
   ConflictException,
+  Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -35,29 +35,31 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    let savedUser;
-
     try {
-      savedUser = await this.userRepository.save(user);
+      const savedUser = await this.userRepository.save(user);
+
+      // Remove the password from the response
+      const { password: _password, ...result } = savedUser;
+      return result;
     } catch (error) {
-      // Handle duplicate username or email errors
-      if (error.code === 'ER_DUP_ENTRY') {
-        if (error.message.includes('users.username')) {
+      // Handle duplicate username or email errors. MySQL's duplicate-entry
+      // error names the violated index, not the column, so look up which
+      // field actually conflicts rather than parsing the error message.
+      if (this.isDuplicateEntryError(error)) {
+        const existing = await this.userRepository.findOne({
+          where: [{ username }, { email }],
+        });
+
+        if (existing?.username === username) {
           throw new ConflictException('Username already exists');
         }
-
-        if (error.message.includes('users.email')) {
+        if (existing?.email === email) {
           throw new ConflictException('Email already exists');
         }
+        throw new ConflictException('Username or email is already taken');
       }
-
       throw error;
     }
-
-    // Remove the password from the response
-    const { password: _, ...result } = savedUser;
-
-    return result;
   }
 
   // Authenticate the user and generate an access token
@@ -79,10 +81,15 @@ export class UsersService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('This account has been blocked');
+    }
+
     // Create the JWT payload with the user's information
     const payload = {
       sub: user.userId,
       username: user.username,
+      role: user.role,
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -90,6 +97,30 @@ export class UsersService {
     return {
       access_token: accessToken,
     };
+  }
+
+  // List every user for the admin dashboard, without their password hash
+  async findAllForAdmin() {
+    const users = await this.userRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+
+    return users.map(({ password: _password, ...result }) => result);
+  }
+
+  // Block or unblock a user's ability to log in
+  async setBlocked(userId: number, isBlocked: boolean) {
+    const user = await this.userRepository.findOne({ where: { userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isBlocked = isBlocked;
+    const savedUser = await this.userRepository.save(user);
+
+    const { password: _password, ...result } = savedUser;
+    return result;
   }
 
   // Return the authenticated user's own profile. Never includes the
@@ -161,5 +192,13 @@ export class UsersService {
     });
 
     return !!user;
+  }
+
+  private isDuplicateEntryError(error: unknown): error is QueryFailedError {
+    return (
+      error instanceof QueryFailedError &&
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        'ER_DUP_ENTRY'
+    );
   }
 }
