@@ -223,6 +223,135 @@
   font-size: 14px;
 }
 
+/* Comment creation */
+
+.comment-create-section {
+  width: 100%;
+  max-width: 800px;
+  margin: 30px auto 0;
+}
+
+.comment-create-section form {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-create-section textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.comment-create-section textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.comment-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.comment-create-actions button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.comment-create-actions button:hover {
+  background-color: #1d4ed8;
+}
+
+.comment-error {
+  margin: 8px 0 0;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* Comments */
+
+.comments-section {
+  width: 100%;
+  max-width: 800px;
+  margin: 35px auto 0;
+}
+
+.comments-section h2 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.comment {
+  padding: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.comment-author {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.comment-content {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #1f2937;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+
+.comment-date {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.no-comments {
+  margin: 0;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.comments-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.comments-count {
+  width: 100%;
+  max-width: 800px;
+  margin: 50px auto 20px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  text-align: left;
+}
+
 /* Responsive */
 
 @media (max-width: 768px) {
