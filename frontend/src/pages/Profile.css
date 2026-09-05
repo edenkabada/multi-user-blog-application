@@ -1,0 +1,128 @@
+.profile-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 50px 20px;
+  box-sizing: border-box;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 35px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.profile-container h1 {
+  margin: 0 0 12px;
+  font-size: 28px;
+}
+
+.profile-joined {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.profile-email {
+  margin: 0 0 20px;
+  color: #374151;
+  font-size: 15px;
+}
+
+.edit-profile-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.edit-profile-button:hover {
+  background-color: #1d4ed8;
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.profile-edit-form h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.profile-edit-form label {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.profile-edit-form input {
+  margin-bottom: 20px;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.profile-edit-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-edit-actions button {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.profile-edit-actions button[type="submit"] {
+  background-color: #2563eb;
+  color: white;
+}
+
+.profile-edit-actions button[type="submit"]:hover {
+  background-color: #1d4ed8;
+}
+
+.cancel-button {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.cancel-button:hover {
+  background-color: #d1d5db;
+}
+
+.error-message {
+  margin-bottom: 20px;
+  color: #dc2626;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 20px;
+  }
+
+  .profile-container {
+    padding: 25px;
+  }
+}
