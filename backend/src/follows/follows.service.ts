@@ -59,4 +59,15 @@ export class FollowsService {
   async getFollowingCount(userId: number): Promise<number> {
     return this.followRepository.count({ where: { followerId: userId } });
   }
+
+  // Check whether followerId currently follows followingId. Used by
+  // GET /users/:id/follow-status so the frontend can show the correct
+  // Follow/Unfollow button state without guessing.
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    const existing = await this.followRepository.findOne({
+      where: { followerId, followingId },
+    });
+
+    return !!existing;
+  }
 }

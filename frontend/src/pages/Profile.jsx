@@ -27,6 +27,10 @@ function Profile() {
   const [editError, setEditError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followStatusLoaded, setFollowStatusLoaded] = useState(false)
+  const [followActionLoading, setFollowActionLoading] = useState(false)
+
   // Load the profile: /users/me for your own profile (includes email),
   // /users/:id for anyone else's (public fields only). Uses an inline
   // .then() chain directly in the effect, matching Home.jsx's existing
@@ -77,6 +81,66 @@ function Profile() {
       }
     })
   }, [id])
+
+  // Determine whether the logged-in user already follows this profile,
+  // via the new GET /users/:id/follow-status endpoint — never guessed,
+  // never left to default. Only fetched when relevant: logged in and
+  // viewing someone else's profile (the button never shows otherwise).
+  useEffect(() => {
+    if (!user || isOwnProfile) {
+      return
+    }
+
+    authFetch(`http://localhost:3000/users/${id}/follow-status`).then(
+      (response) => {
+        if (response.ok) {
+          response.json().then((data) => {
+            setIsFollowing(data.isFollowing)
+            setFollowStatusLoaded(true)
+          })
+        }
+      }
+    )
+  }, [id, isOwnProfile, user])
+
+  // Follow this user via POST /users/:id/follow (SCRUM-42), then update
+  // both the button state and the follower count directly from the
+  // action's outcome — no refetch or reload needed.
+  const handleFollow = () => {
+    setFollowActionLoading(true)
+
+    authFetch(`http://localhost:3000/users/${id}/follow`, {
+      method: 'POST',
+    }).then((response) => {
+      if (response.ok) {
+        setIsFollowing(true)
+        setProfile((prev) => ({
+          ...prev,
+          followerCount: prev.followerCount + 1,
+        }))
+      }
+      setFollowActionLoading(false)
+    })
+  }
+
+  // Unfollow via DELETE /users/:id/follow (SCRUM-42), same immediate
+  // local update approach as handleFollow.
+  const handleUnfollow = () => {
+    setFollowActionLoading(true)
+
+    authFetch(`http://localhost:3000/users/${id}/follow`, {
+      method: 'DELETE',
+    }).then((response) => {
+      if (response.ok) {
+        setIsFollowing(false)
+        setProfile((prev) => ({
+          ...prev,
+          followerCount: Math.max(0, prev.followerCount - 1),
+        }))
+      }
+      setFollowActionLoading(false)
+    })
+  }
 
   const handleEditClick = () => {
     setEditUsername(profile.username)
@@ -161,6 +225,11 @@ function Profile() {
             <h1>{profile.username}</h1>
             <p className="profile-joined">Joined {joinDate}</p>
 
+            <p className="profile-counts">
+              <span>{profile.followerCount} Followers</span>
+              <span>{profile.followingCount} Following</span>
+            </p>
+
             {isOwnProfile && (
               <p className="profile-email">{profile.email}</p>
             )}
@@ -171,6 +240,22 @@ function Profile() {
                 onClick={handleEditClick}
               >
                 Edit Profile
+              </button>
+            )}
+
+            {!isOwnProfile && user && followStatusLoaded && (
+              <button
+                className={
+                  isFollowing ? 'unfollow-button' : 'follow-button'
+                }
+                onClick={isFollowing ? handleUnfollow : handleFollow}
+                disabled={followActionLoading}
+              >
+                {followActionLoading
+                  ? '...'
+                  : isFollowing
+                  ? 'Unfollow'
+                  : 'Follow'}
               </button>
             )}
           </>

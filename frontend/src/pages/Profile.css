@@ -34,6 +34,48 @@
   font-size: 15px;
 }
 
+.profile-counts {
+  margin: 0 0 16px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.follow-button,
+.unfollow-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.follow-button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.follow-button:hover {
+  background-color: #1d4ed8;
+}
+
+.unfollow-button {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.unfollow-button:hover {
+  background-color: #d1d5db;
+}
+
+.follow-button:disabled,
+.unfollow-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .edit-profile-button {
   padding: 10px 18px;
   border: none;
