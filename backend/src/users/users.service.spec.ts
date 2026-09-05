@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { QueryFailedError, Repository } from 'typeorm';
@@ -38,6 +42,7 @@ describe('UsersService', () => {
             create: jest.fn(),
             save: jest.fn(),
             findOne: jest.fn(),
+            find: jest.fn(),
           },
         },
         {
@@ -182,6 +187,67 @@ describe('UsersService', () => {
         UnauthorizedException,
       );
       expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('throws UnauthorizedException when the account is blocked', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 1,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'user',
+        isBlocked: true,
+      } as User);
+
+      await expect(service.login(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findAllForAdmin', () => {
+    it('returns every user without their password', async () => {
+      repository.find.mockResolvedValue([
+        { userId: 1, username: 'alon', password: 'hashed' } as User,
+        { userId: 2, username: 'eden', password: 'hashed' } as User,
+      ]);
+
+      const result = await service.findAllForAdmin();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).not.toHaveProperty('password');
+      expect(result[1]).not.toHaveProperty('password');
+    });
+  });
+
+  describe('setBlocked', () => {
+    it('updates and returns the user without their password', async () => {
+      const existingUser = {
+        userId: 1,
+        username: 'alon',
+        password: 'hashed',
+        isBlocked: false,
+      } as User;
+      repository.findOne.mockResolvedValue(existingUser);
+      repository.save.mockResolvedValue({ ...existingUser, isBlocked: true });
+
+      const result = await service.setBlocked(1, true);
+
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ isBlocked: true }),
+      );
+      expect(result).not.toHaveProperty('password');
+      expect(result.isBlocked).toBe(true);
+    });
+
+    it('throws NotFoundException when the user does not exist', async () => {
+      repository.findOne.mockResolvedValue(null);
+
+      await expect(service.setBlocked(999, true)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(repository.save).not.toHaveBeenCalled();
     });
   });
 });
