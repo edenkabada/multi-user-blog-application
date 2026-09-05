@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import AdminLogin from './pages/AdminLogin'
@@ -10,89 +10,101 @@ import PostCreate from './pages/PostCreate'
 import ProtectedRoute from './ProtectedRoute'
 import PostView from './pages/PostView'
 import PostEdit from './pages/PostEdit'
+import Profile from './pages/Profile'
+
+// AdminLogin stores the token in localStorage itself and then fires a
+// void onLoginSuccess() callback. Feed that token back into AuthContext
+// here so the shared isLoggedIn state updates immediately -- otherwise
+// ProtectedRoute would still see a stale, logged-out context and bounce
+// the admin straight back out of /admin/dashboard.
+function AdminLoginRoute() {
+  const { login } = useAuth()
+
+  return (
+    <AdminLogin
+      onLoginSuccess={() => login(localStorage.getItem('access_token'))}
+    />
+  )
+}
 
 function App() {
 
-  // Controls whether the user is logged in
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    !!localStorage.getItem('access_token')
-  )
-
-
   return (
     <BrowserRouter>
-      <div className="app">
-        <Routes>
+      {/* AuthProvider must be inside BrowserRouter — it uses useNavigate
+          for the logout redirect */}
+      <AuthProvider>
+        <div className="app">
+          <Routes>
 
-          {/* Display the Home page */}
-          <Route
-            path="/"
-            element={<Home isLoggedIn={isLoggedIn} />}
-          />
+            {/* Display the Home page */}
+            <Route
+              path="/"
+              element={<Home />}
+            />
 
-          {/* Display the Login page */}
-          <Route
-            path="/login"
-            element={
-              <Login
-                onLoginSuccess={() => setIsLoggedIn(true)}
-              />
-            }
-          />
+            {/* Display the Login page */}
+            <Route
+              path="/login"
+              element={<Login />}
+            />
 
-          {/* Display the Registration page */}
-          <Route
-            path="/register"
-            element={<Register />}
-          />
+            {/* Display the Registration page */}
+            <Route
+              path="/register"
+              element={<Register />}
+            />
 
-          {/* Display the Admin Login page */}
-          <Route
-            path="/admin/login"
-            element={
-              <AdminLogin
-                onLoginSuccess={() => setIsLoggedIn(true)}
-              />
-            }
-          />
+            {/* Display the Admin Login page */}
+            <Route
+              path="/admin/login"
+              element={<AdminLoginRoute />}
+            />
 
-          {/* Protect the Admin Dashboard page */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn} adminOnly>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protect the Admin Dashboard page */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Protect the Post Creation page */}
-          <Route
-            path="/posts/new"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <PostCreate />
-              </ProtectedRoute>
-            }
-          />
+            {/* Display a user's profile */}
+            <Route
+              path="/profile/:id"
+              element={<Profile />}
+            />
 
-          {/* Display a specific post */}
-          <Route
-            path="/posts/:postId"
-            element={<PostView />}
-          />
+            {/* Protect the Post Creation page */}
+            <Route
+              path="/posts/new"
+              element={
+                <ProtectedRoute>
+                  <PostCreate />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Protect the post editing page */}
-          <Route
-            path="/posts/:postId/edit"
-            element={
-              <ProtectedRoute isLoggedIn={isLoggedIn}>
-                <PostEdit />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
+            {/* Display a specific post */}
+            <Route
+              path="/posts/:postId"
+              element={<PostView />}
+            />
+
+            {/* Protect the post editing page */}
+            <Route
+              path="/posts/:postId/edit"
+              element={
+                <ProtectedRoute>
+                  <PostEdit />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

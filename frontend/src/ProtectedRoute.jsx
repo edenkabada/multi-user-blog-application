@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 
 // Decode the role claim from the stored JWT, without verifying it --
 // the backend is still the source of truth on every actual request
@@ -13,7 +14,8 @@ function getRole() {
     return payload.role
 }
 
-function ProtectedRoute({ isLoggedIn, adminOnly, children }) {
+function ProtectedRoute({ adminOnly, children }) {
+    const { isLoggedIn } = useAuth()
 
     // Redirect unauthenticated users to the home page
     if (!isLoggedIn) {

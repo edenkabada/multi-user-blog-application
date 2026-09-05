@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
-function Login({ onLoginSuccess }) {
+function Login() {
 
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
@@ -13,6 +14,7 @@ function Login({ onLoginSuccess }) {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const navigate = useNavigate()
+    const { login } = useAuth()
 
     // Handle form submission and login request
     const handleSubmit = async (e) => {
@@ -53,9 +55,8 @@ function Login({ onLoginSuccess }) {
                 return
             }
 
-            // Store the JWT token received from the backend
-            localStorage.setItem('access_token', data.access_token)
-            onLoginSuccess()
+            // Store the JWT token and update the shared auth state
+            login(data.access_token)
             navigate('/')
         } catch {
             setError('Unable to reach the server. Please try again.')
