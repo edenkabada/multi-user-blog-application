@@ -8,7 +8,6 @@ function PostEdit() {
     const [content, setContent] = useState('')
     const [error, setError] = useState('')
     const [post, setPost] = useState(null)
-    const [isAuthorized, setIsAuthorized] = useState(false)
     const { postId } = useParams()
     const navigate = useNavigate()
 
@@ -40,19 +39,15 @@ function PostEdit() {
             })
     }, [postId])
 
-    // Check that the logged-in user owns the post
+    // The logged-in user is authorized only if they own the post
+    const isAuthorized = post != null && Number(post.userId) === Number(currentUserId)
+
+    // Redirect away if the logged-in user doesn't own this post
     useEffect(() => {
-        if (!post) {
-            return
-        }
-
-        if (Number(post.userId) !== Number(currentUserId)) {
+        if (post && !isAuthorized) {
             navigate(`/posts/${postId}`)
-            return
         }
-
-        setIsAuthorized(true)
-    }, [post, currentUserId, postId, navigate])
+    }, [post, isAuthorized, postId, navigate])
 
     if (!post || !isAuthorized) {
         return <p>Loading...</p>
