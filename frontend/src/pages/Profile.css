@@ -7,7 +7,7 @@
 
 .profile-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 35px;
   background-color: #ffffff;
@@ -115,6 +115,70 @@
   margin-bottom: 20px;
   color: #dc2626;
   text-align: center;
+}
+
+.profile-tabs-section {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.profile-tabs button {
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.profile-tabs button.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  font-weight: 500;
+}
+
+.profile-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-empty-state {
+  color: #6b7280;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.profile-item-card {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.profile-item-card h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.profile-item-date {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.profile-item-preview {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 768px) {
