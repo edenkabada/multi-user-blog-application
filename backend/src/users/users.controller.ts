@@ -1,11 +1,34 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PostsService } from '../posts/posts.service';
+import { CommentsService } from '../comments/comments.service';
+import { FollowsService } from '../follows/follows.service';
+
+interface AuthenticatedRequest {
+  user: { userId: number; username: string };
+}
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly postsService: PostsService,
+    private readonly commentsService: CommentsService,
+    private readonly followsService: FollowsService,
+  ) {}
 
   // Handle user registration requests
   @Post('register')
@@ -17,5 +40,109 @@ export class UsersController {
   @Post('login')
   login(@Body() loginUserDto: LoginUserDto) {
     return this.usersService.login(loginUserDto);
+  }
+
+  // Return the authenticated user's own profile.
+  // Must be declared before the ':id' route below, otherwise Nest would
+  // match "me" as an :id value instead of routing here.
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@Request() req: AuthenticatedRequest) {
+    return this.usersService.findMe(req.user.userId);
+  }
+
+  // Return public profile fields for any user by id
+  @Get(':id')
+  getUserById(@Param('id') id: string) {
+    return this.usersService.findPublicProfile(Number(id));
+  }
+
+  // Return all posts belonging to a specific user, newest first.
+  // 404s if the user doesn't exist; returns [] if they exist but have
+  // no posts. Existence is checked here so PostsService can stay focused
+  // purely on post-filtering, per SCRUM-39's scope.
+  @Get(':id/posts')
+  async getUserPosts(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.postsService.findByUser(userId);
+  }
+
+  // Return all comments belonging to a specific user, newest first.
+  // Same 404-guard pattern as getUserPosts: existence checked here,
+  // CommentsService stays focused purely on comment-filtering.
+  @Get(':id/comments')
+  async getUserComments(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.commentsService.findByUser(userId);
+  }
+
+  // Return a merged, chronological feed of a user's posts and comments.
+  // Reuses PostsService.findByUser (SCRUM-39) and CommentsService.findByUser
+  // (SCRUM-40) as-is — this endpoint only tags and merges their results.
+  @Get(':id/activity')
+  async getUserActivity(@Param('id') id: string) {
+    const userId = Number(id);
+    const exists = await this.usersService.userExists(userId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    const [posts, comments] = await Promise.all([
+      this.postsService.findByUser(userId),
+      this.commentsService.findByUser(userId),
+    ]);
+
+    const activity = [
+      ...posts.map((post) => ({ type: 'post' as const, ...post })),
+      ...comments.map((comment) => ({ type: 'comment' as const, ...comment })),
+    ];
+
+    activity.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return activity;
+  }
+
+  // Follow another user. Self-follow and duplicate-follow rejection are
+  // handled by FollowsService; this only guards that the target user
+  // actually exists, consistent with the other :id-scoped endpoints.
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/follow')
+  async followUser(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const followingId = Number(id);
+    const exists = await this.usersService.userExists(followingId);
+
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.followsService.follow(req.user.userId, followingId);
+  }
+
+  // Unfollow another user. No existence check here — unfollowing should
+  // always succeed as a way to clear a stale relationship, even if the
+  // target user account no longer exists.
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/follow')
+  unfollowUser(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
+    return this.followsService.unfollow(req.user.userId, Number(id));
   }
 }

@@ -102,6 +102,27 @@ export class PostsService {
     return this.postRepository.save(post);
   }
 
+  // Retrieve all posts belonging to a specific user, newest first.
+  // Does not verify the user exists — callers (e.g. UsersController) are
+  // expected to check that first and return 404 before calling this.
+  async findByUser(userId: number) {
+    const posts = await this.postRepository.find({
+      where: { userId },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return posts.map((post) => ({
+      postId: post.postId,
+      title: post.title,
+      content: post.content,
+      createdAt: post.createdAt,
+      userId: post.userId,
+      updatedAt: post.updatedAt,
+    }));
+  }
+
   // Delete an existing post owned by the authenticated user
   async remove(postId: number, user: { userId: number; username: string }) {
     const post = await this.findPostOrThrow(postId);

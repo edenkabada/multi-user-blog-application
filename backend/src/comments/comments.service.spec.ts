@@ -16,6 +16,8 @@ describe('CommentsService', () => {
         {
           provide: getRepositoryToken(Comment),
           useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
             find: jest.fn(),
             findOne: jest.fn(),
             remove: jest.fn(),
@@ -30,6 +32,52 @@ describe('CommentsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('findByUser', () => {
+    it('queries comments filtered by userId, ordered newest first', async () => {
+      repository.find.mockResolvedValue([]);
+
+      await service.findByUser(1);
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { userId: 1 },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it("returns only that user's comments, mapped to the expected shape", async () => {
+      const createdAt = new Date('2026-02-01T00:00:00Z');
+      repository.find.mockResolvedValue([
+        {
+          commentId: 5,
+          userId: 1,
+          postId: 10,
+          content: 'Nice post!',
+          createdAt,
+        } as Comment,
+      ]);
+
+      const result = await service.findByUser(1);
+
+      expect(result).toEqual([
+        {
+          commentId: 5,
+          userId: 1,
+          postId: 10,
+          content: 'Nice post!',
+          createdAt,
+        },
+      ]);
+    });
+
+    it('returns an empty array when the user has no comments', async () => {
+      repository.find.mockResolvedValue([]);
+
+      const result = await service.findByUser(1);
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('findAllForAdmin', () => {

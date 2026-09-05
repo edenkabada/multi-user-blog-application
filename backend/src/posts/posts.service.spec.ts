@@ -123,6 +123,55 @@ describe('PostsService', () => {
     });
   });
 
+  describe('findByUser', () => {
+    it('queries posts filtered by userId, ordered newest first', async () => {
+      repository.find.mockResolvedValue([]);
+
+      await service.findByUser(1);
+
+      expect(repository.find).toHaveBeenCalledWith({
+        where: { userId: 1 },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it("returns only that user's posts, mapped to the expected shape", async () => {
+      const createdAt = new Date('2026-02-01T00:00:00Z');
+      const updatedAt = new Date('2026-02-02T00:00:00Z');
+      repository.find.mockResolvedValue([
+        {
+          postId: 10,
+          userId: 1,
+          title: 'Newest post',
+          content: 'Content A',
+          createdAt,
+          updatedAt,
+        } as Post,
+      ]);
+
+      const result = await service.findByUser(1);
+
+      expect(result).toEqual([
+        {
+          postId: 10,
+          title: 'Newest post',
+          content: 'Content A',
+          createdAt,
+          userId: 1,
+          updatedAt,
+        },
+      ]);
+    });
+
+    it('returns an empty array when the user has no posts', async () => {
+      repository.find.mockResolvedValue([]);
+
+      const result = await service.findByUser(1);
+
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('remove', () => {
     it('removes the post when the requester owns it', async () => {
       const existingPost = { postId: 1, userId: user.userId } as Post;

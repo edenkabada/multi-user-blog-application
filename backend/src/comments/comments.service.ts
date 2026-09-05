@@ -44,6 +44,26 @@ export class CommentsService {
     }));
   }
 
+  // Retrieve all comments belonging to a specific user, newest first.
+  // Read-only: does not verify the user exists — callers (e.g.
+  // UsersController) are expected to check that first and return 404.
+  async findByUser(userId: number) {
+    const comments = await this.commentRepository.find({
+      where: { userId },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return comments.map((comment) => ({
+      commentId: comment.commentId,
+      userId: comment.userId,
+      postId: comment.postId,
+      content: comment.content,
+      createdAt: comment.createdAt,
+    }));
+  }
+
   // List every comment for the admin dashboard, with author and post context
   async findAllForAdmin() {
     const comments = await this.commentRepository.find({
