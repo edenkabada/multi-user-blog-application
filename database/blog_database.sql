@@ -19,6 +19,7 @@ CREATE TABLE Posts (
     content VARCHAR(5000) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL,
+    
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
@@ -28,10 +29,21 @@ CREATE TABLE Comments (
     post_id INT UNSIGNED NOT NULL,
     content VARCHAR(1000) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (post_id) REFERENCES Posts(post_id)
 );
 
+CREATE TABLE Likes (
+    like_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    comment_id INT UNSIGNED NOT NULL,
+
+    UNIQUE (user_id, comment_id),
+
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (comment_id) REFERENCES Comments(comment_id)
+);
 
 
 

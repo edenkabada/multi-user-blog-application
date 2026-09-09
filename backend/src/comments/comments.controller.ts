@@ -1,5 +1,6 @@
 import { Body, Controller, Param, Post, Get, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentsService } from './comments.service';
 
@@ -24,11 +25,42 @@ export class CommentsController {
         );
     }
 
+    // Allows authenticated users to like a comment
+    @UseGuards(JwtAuthGuard)
+    @Post(':commentId/like')
+    likeComment(
+        @Param('commentId') commentId: string,
+        @Request() req,
+    ) {
+        return this.commentsService.likeComment(
+            Number(commentId),
+            req.user.userId,
+        );
+    }
+
+    // Allows authenticated users to remove their like from a comment
+    @UseGuards(JwtAuthGuard)
+    @Post(':commentId/unlike')
+    unlikeComment(
+        @Param('commentId') commentId: string,
+        @Request() req,
+    ) {
+        return this.commentsService.unlikeComment(
+            Number(commentId),
+            req.user.userId,
+        );
+    }
+
     // Handle requests to retrieve comments for a specific post
+    @UseGuards(OptionalJwtAuthGuard)
     @Get(':postId')
     findCommentsByPost(
         @Param('postId') postId: string,
+        @Request() req,
     ) {
-        return this.commentsService.findByPost(Number(postId));
+        return this.commentsService.findByPost(
+            Number(postId),
+            req.user?.userId ?? null,
+        );
     }
 }
