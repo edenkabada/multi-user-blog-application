@@ -64,7 +64,15 @@ function PostView() {
     useEffect(() => {
         setCommentsError('')
 
-        fetch(`http://localhost:3000/comments/${postId}`)
+        const token = localStorage.getItem('access_token')
+
+        fetch(`http://localhost:3000/comments/${postId}`, {
+            headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                }
+                : {},
+        })
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch comments')
@@ -78,7 +86,45 @@ function PostView() {
             })
     }, [postId])
 
-    // Event handlers
+    // Like or unlike a comment
+    const handleCommentLike = async (comment) => {
+        const token = localStorage.getItem('access_token')
+
+        const endpoint = comment.likedByCurrentUser
+            ? `http://localhost:3000/comments/${comment.commentId}/unlike`
+            : `http://localhost:3000/comments/${comment.commentId}/like`
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to update comment like')
+            }
+
+            // Update the comment immediately in the UI
+            setComments((currentComments) =>
+                currentComments.map((currentComment) =>
+                    currentComment.commentId === comment.commentId
+                        ? {
+                            ...currentComment,
+                            likedByCurrentUser:
+                                !currentComment.likedByCurrentUser,
+                            likesCount:
+                                currentComment.likesCount +
+                                (currentComment.likedByCurrentUser ? -1 : 1),
+                        }
+                        : currentComment
+                )
+            )
+        } catch {
+            // Keep the current UI state if the request fails
+        }
+    }
 
     // Navigation handlers
     const handleCreatePostClick = () => {
@@ -339,10 +385,6 @@ function PostView() {
                                         {comment.username}
                                     </p>
 
-                                    <p className="comment-content">
-                                        {comment.content}
-                                    </p>
-
                                     <p className="comment-date">
                                         {new Date(comment.createdAt).toLocaleDateString(
                                             'en-US',
@@ -362,6 +404,26 @@ function PostView() {
                                         )}
                                     </p>
 
+                                    <p className="comment-content">
+                                        {comment.content}
+                                    </p>
+
+                                    <div className="comment-like">
+                                        <button
+                                            onClick={() => handleCommentLike(comment)}
+                                            disabled={!isLoggedIn}
+                                            aria-label={
+                                                comment.likedByCurrentUser
+                                                    ? 'Unlike comment'
+                                                    : 'Like comment'
+                                            }
+                                        >
+                                            <span className={comment.likedByCurrentUser ? 'liked-heart' : ''}>
+                                                {comment.likedByCurrentUser ? '♥' : '♡'}
+                                            </span>{' '}
+                                            {comment.likesCount}
+                                        </button>
+                                    </div>
                                 </article>
                             ))}
                         </div>
