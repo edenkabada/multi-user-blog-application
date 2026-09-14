@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Home.css'
 
 
-function Home({ isLoggedIn }) {
+function Home() {
 
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
   const [posts, setPosts] = useState([])
+  const { isLoggedIn, logout } = useAuth()
 
   // Fetch posts from the backend
   useEffect(() => {
@@ -50,6 +52,15 @@ function Home({ isLoggedIn }) {
               onClick={() => navigate('/login')}
             >
               Login
+            </button>
+          )}
+
+          {isLoggedIn && (
+            <button
+              className="login-button"
+              onClick={logout}
+            >
+              Logout
             </button>
           )}
         </div>
