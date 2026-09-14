@@ -8,11 +8,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentsService } from './comments.service';
 
 interface AuthenticatedRequest {
   user: { userId: number; username: string };
+}
+
+interface OptionalAuthenticatedRequest {
+  user?: { userId: number; username: string };
 }
 
 @Controller('comments')
@@ -34,9 +39,41 @@ export class CommentsController {
     );
   }
 
-  // Handle requests to retrieve comments for a specific post
+  // Allows authenticated users to like a comment
+  @UseGuards(JwtAuthGuard)
+  @Post(':commentId/like')
+  likeComment(
+    @Param('commentId') commentId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.commentsService.likeComment(Number(commentId), req.user.userId);
+  }
+
+  // Allows authenticated users to remove their like from a comment
+  @UseGuards(JwtAuthGuard)
+  @Post(':commentId/unlike')
+  unlikeComment(
+    @Param('commentId') commentId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.commentsService.unlikeComment(
+      Number(commentId),
+      req.user.userId,
+    );
+  }
+
+  // Handle requests to retrieve comments for a specific post. Auth is
+  // optional here -- anonymous visitors can still view comments, but a
+  // logged-in user's own like state is included when a valid token is sent.
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':postId')
-  findCommentsByPost(@Param('postId') postId: string) {
-    return this.commentsService.findByPost(Number(postId));
+  findCommentsByPost(
+    @Param('postId') postId: string,
+    @Request() req: OptionalAuthenticatedRequest,
+  ) {
+    return this.commentsService.findByPost(
+      Number(postId),
+      req.user?.userId ?? null,
+    );
   }
 }
