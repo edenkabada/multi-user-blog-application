@@ -7,6 +7,9 @@ describe('CommentsController', () => {
   let controller: CommentsController;
   let service: jest.Mocked<CommentsService>;
 
+  const req = { user: { userId: 1, username: 'alon' } };
+  const anonymousReq = { user: undefined };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CommentsController],
@@ -16,6 +19,8 @@ describe('CommentsController', () => {
           useValue: {
             create: jest.fn(),
             findByPost: jest.fn(),
+            likeComment: jest.fn(),
+            unlikeComment: jest.fn(),
           },
         },
       ],
@@ -31,7 +36,6 @@ describe('CommentsController', () => {
 
   it('createComment delegates to CommentsService with the postId, DTO, and authenticated user', async () => {
     const dto: CreateCommentDto = { content: 'Nice post!' };
-    const req = { user: { userId: 1, username: 'alon' } };
     const expected = { commentId: 1, content: dto.content, postId: 2 };
     service.create.mockResolvedValue(expected as never);
 
@@ -41,15 +45,48 @@ describe('CommentsController', () => {
     expect(result).toBe(expected);
   });
 
-  it('findCommentsByPost delegates to CommentsService with the numeric postId', async () => {
-    const expected = [
-      { commentId: 1, content: 'Nice post!', username: 'alon' },
-    ];
-    service.findByPost.mockResolvedValue(expected as never);
+  describe('findCommentsByPost', () => {
+    it("delegates to CommentsService with the numeric postId and the authenticated user's id", async () => {
+      const expected = [
+        { commentId: 1, content: 'Nice post!', username: 'alon' },
+      ];
+      service.findByPost.mockResolvedValue(expected as never);
 
-    const result = await controller.findCommentsByPost('2');
+      const result = await controller.findCommentsByPost('2', req);
 
-    expect(service.findByPost).toHaveBeenCalledWith(2);
+      expect(service.findByPost).toHaveBeenCalledWith(2, 1);
+      expect(result).toBe(expected);
+    });
+
+    it('delegates to CommentsService with null when the request is anonymous', async () => {
+      const expected = [
+        { commentId: 1, content: 'Nice post!', username: 'alon' },
+      ];
+      service.findByPost.mockResolvedValue(expected as never);
+
+      const result = await controller.findCommentsByPost('2', anonymousReq);
+
+      expect(service.findByPost).toHaveBeenCalledWith(2, null);
+      expect(result).toBe(expected);
+    });
+  });
+
+  it('likeComment delegates to CommentsService with the numeric commentId and authenticated user id', async () => {
+    const expected = { likeId: 1, commentId: 1, userId: 1 };
+    service.likeComment.mockResolvedValue(expected as never);
+
+    const result = await controller.likeComment('1', req);
+
+    expect(service.likeComment).toHaveBeenCalledWith(1, 1);
     expect(result).toBe(expected);
+  });
+
+  it('unlikeComment delegates to CommentsService with the numeric commentId and authenticated user id', async () => {
+    service.unlikeComment.mockResolvedValue(undefined);
+
+    const result = await controller.unlikeComment('1', req);
+
+    expect(service.unlikeComment).toHaveBeenCalledWith(1, 1);
+    expect(result).toBeUndefined();
   });
 });
