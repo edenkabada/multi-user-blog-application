@@ -8,6 +8,7 @@ describe('PostsController', () => {
   let service: jest.Mocked<PostsService>;
 
   const req = { user: { userId: 1, username: 'alon' } };
+  const anonymousReq = { user: undefined };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +22,8 @@ describe('PostsController', () => {
             findOne: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
+            likePost: jest.fn(),
+            unlikePost: jest.fn(),
           },
         },
       ],
@@ -45,24 +48,48 @@ describe('PostsController', () => {
     expect(result).toBe(expected);
   });
 
-  it('findAllPosts delegates to PostsService', async () => {
-    const expected = [{ postId: 1, title: 'Hello' }];
-    service.findAll.mockResolvedValue(expected as never);
+  describe('findAllPosts', () => {
+    it("delegates to PostsService with the authenticated user's id when a token is present", async () => {
+      const expected = [{ postId: 1, title: 'Hello' }];
+      service.findAll.mockResolvedValue(expected as never);
 
-    const result = await controller.findAllPosts();
+      const result = await controller.findAllPosts(req);
 
-    expect(service.findAll).toHaveBeenCalled();
-    expect(result).toBe(expected);
+      expect(service.findAll).toHaveBeenCalledWith(1);
+      expect(result).toBe(expected);
+    });
+
+    it('delegates to PostsService with null when the request is anonymous', async () => {
+      const expected = [{ postId: 1, title: 'Hello' }];
+      service.findAll.mockResolvedValue(expected as never);
+
+      const result = await controller.findAllPosts(anonymousReq);
+
+      expect(service.findAll).toHaveBeenCalledWith(null);
+      expect(result).toBe(expected);
+    });
   });
 
-  it('findOnePost converts the postId param to a number', async () => {
-    const expected = { postId: 1, title: 'Hello' };
-    service.findOne.mockResolvedValue(expected as never);
+  describe('findOnePost', () => {
+    it("converts the postId param to a number and passes the authenticated user's id", async () => {
+      const expected = { postId: 1, title: 'Hello' };
+      service.findOne.mockResolvedValue(expected as never);
 
-    const result = await controller.findOnePost('1');
+      const result = await controller.findOnePost('1', req);
 
-    expect(service.findOne).toHaveBeenCalledWith(1);
-    expect(result).toBe(expected);
+      expect(service.findOne).toHaveBeenCalledWith(1, 1);
+      expect(result).toBe(expected);
+    });
+
+    it('passes null for the requesting user when the request is anonymous', async () => {
+      const expected = { postId: 1, title: 'Hello' };
+      service.findOne.mockResolvedValue(expected as never);
+
+      const result = await controller.findOnePost('1', anonymousReq);
+
+      expect(service.findOne).toHaveBeenCalledWith(1, null);
+      expect(result).toBe(expected);
+    });
   });
 
   it('updatePost delegates to PostsService with the authenticated user', async () => {
@@ -84,5 +111,24 @@ describe('PostsController', () => {
 
     expect(service.remove).toHaveBeenCalledWith(1, req.user);
     expect(result).toBe(expected);
+  });
+
+  it('likePost delegates to PostsService with the numeric postId and authenticated user id', async () => {
+    const expected = { likeId: 1, postId: 1, userId: 1 };
+    service.likePost.mockResolvedValue(expected as never);
+
+    const result = await controller.likePost('1', req);
+
+    expect(service.likePost).toHaveBeenCalledWith(1, 1);
+    expect(result).toBe(expected);
+  });
+
+  it('unlikePost delegates to PostsService with the numeric postId and authenticated user id', async () => {
+    service.unlikePost.mockResolvedValue(undefined);
+
+    const result = await controller.unlikePost('1', req);
+
+    expect(service.unlikePost).toHaveBeenCalledWith(1, 1);
+    expect(result).toBeUndefined();
   });
 });

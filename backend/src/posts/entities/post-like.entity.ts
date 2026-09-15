@@ -1,23 +1,23 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Comment } from './comment.entity';
+import { Post } from './post.entity';
 
-@Entity('Likes')
-export class Like {
+@Entity('PostLikes')
+export class PostLike {
   @PrimaryGeneratedColumn({ name: 'like_id' })
-  likeId: number;
+  likeId!: number;
 
   @Column({ name: 'user_id' })
-  userId: number;
+  userId!: number;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
-  @Column({ name: 'comment_id' })
-  commentId: number;
+  @Column({ name: 'post_id' })
+  postId!: number;
 
-  @ManyToOne(() => Comment)
-  @JoinColumn({ name: 'comment_id' })
-  comment: Comment;
+  @ManyToOne(() => Post)
+  @JoinColumn({ name: 'post_id' })
+  post!: Post;
 }

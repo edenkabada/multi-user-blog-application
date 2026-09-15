@@ -43,7 +43,7 @@ export class AdminController {
   // List every post for the dashboard
   @Get('posts')
   getPosts() {
-    return this.postsService.findAll();
+    return this.postsService.findAll(null);
   }
 
   // Delete any post, regardless of who owns it

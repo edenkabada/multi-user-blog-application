@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { Post } from './entities/post.entity';
+import { PostLike } from './entities/post-like.entity';
 import { AuthModule } from '../auth/auth.module';
 
 // Configure the Posts module and its dependencies
 @Module({
-  imports: [TypeOrmModule.forFeature([Post]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Post, PostLike]), AuthModule],
   controllers: [PostsController],
   providers: [PostsService],
   exports: [PostsService],

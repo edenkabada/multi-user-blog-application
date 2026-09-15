@@ -34,7 +34,7 @@ CREATE TABLE Comments (
     FOREIGN KEY (post_id) REFERENCES Posts(post_id)
 );
 
-CREATE TABLE Likes (
+CREATE TABLE CommentLikes (
     like_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     comment_id INT UNSIGNED NOT NULL,
@@ -45,6 +45,15 @@ CREATE TABLE Likes (
     FOREIGN KEY (comment_id) REFERENCES Comments(comment_id)
 );
 
+CREATE TABLE PostLikes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    post_id INT NOT NULL,
 
+    UNIQUE (user_id, post_id),
+
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (post_id) REFERENCES Posts(post_id)
+);
 
 
