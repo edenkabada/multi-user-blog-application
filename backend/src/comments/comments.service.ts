@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './entities/comment.entity';
-import { Like } from './entities/like.entity';
+import { CommentLike } from './entities/comment-like.entity';
 
 
 @Injectable()
@@ -12,8 +12,8 @@ export class CommentsService {
         @InjectRepository(Comment)
         private readonly commentRepository: Repository<Comment>,
 
-        @InjectRepository(Like)
-        private readonly likeRepository: Repository<Like>,
+        @InjectRepository(CommentLike)
+        private readonly likeRepository: Repository<CommentLike>,
     ) { }
 
     // Creates and saves a new comment for the authenticated user and post

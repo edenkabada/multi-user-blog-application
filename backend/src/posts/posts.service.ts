@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
+import { PostLike } from './entities/post-like.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 
@@ -10,6 +11,9 @@ export class PostsService {
     constructor(
         @InjectRepository(Post)
         private readonly postRepository: Repository<Post>,
+
+        @InjectRepository(PostLike)
+        private readonly postLikeRepository: Repository<PostLike>,
     ) { }
 
     // Create a new post and associate it with the authenticated user
@@ -27,7 +31,7 @@ export class PostsService {
     }
 
     // Retrieve all posts with their authors
-    async findAll() {
+    async findAll(userId: number | null) {
         const posts = await this.postRepository.find({
             relations: {
                 user: true,
@@ -36,21 +40,40 @@ export class PostsService {
                 createdAt: 'DESC',
             },
         });
-        
-        // Return post details with the author's username
-        return posts.map((post) => ({
-            postId: post.postId,
-            title: post.title,
-            content: post.content,
-            createdAt: post.createdAt,
-            username: post.user.username,
-            userId: post.userId,
-            updatedAt: post.updatedAt,
-        }));
+
+        // Return post details 
+        return Promise.all(
+            posts.map(async (post) => {
+                const likesCount = await this.postLikeRepository.count({
+                    where: { postId: post.postId },
+                });
+
+                const likedByCurrentUser =
+                    userId !== null &&
+                    await this.postLikeRepository.exists({
+                        where: {
+                            postId: post.postId,
+                            userId,
+                        },
+                    });
+
+                return {
+                    postId: post.postId,
+                    title: post.title,
+                    content: post.content,
+                    createdAt: post.createdAt,
+                    username: post.user.username,
+                    userId: post.userId,
+                    updatedAt: post.updatedAt,
+                    likesCount,
+                    likedByCurrentUser,
+                };
+            }),
+        );
     }
 
     // Retrieve a specific post by its ID
-    async findOne(postId: number) {
+    async findOne(postId: number, userId: number | null) {
         const post = await this.postRepository.findOne({
             where: { postId },
             relations: {
@@ -62,7 +85,20 @@ export class PostsService {
             throw new NotFoundException('Post not found');
         }
 
-        // Return post details with the author's username
+        const likesCount = await this.postLikeRepository.count({
+            where: { postId: post.postId },
+        });
+
+        const likedByCurrentUser =
+            userId !== null &&
+            await this.postLikeRepository.exists({
+                where: {
+                    postId: post.postId,
+                    userId,
+                },
+            });
+
+        // Return post details 
         return {
             postId: post.postId,
             title: post.title,
@@ -71,6 +107,8 @@ export class PostsService {
             username: post.user.username,
             userId: post.userId,
             updatedAt: post.updatedAt,
+            likesCount,
+            likedByCurrentUser,
         };
     }
 
@@ -120,5 +158,29 @@ export class PostsService {
         return {
             message: 'Post deleted successfully',
         };
+    }
+
+    // Adds a like to a post for the authenticated user
+    async likePost(
+        postId: number,
+        userId: number,
+    ) {
+        const like = this.postLikeRepository.create({
+            postId,
+            userId,
+        });
+
+        return this.postLikeRepository.save(like);
+    }
+
+    // Removes the authenticated user's like from a post
+    async unlikePost(
+        postId: number,
+        userId: number,
+    ) {
+        await this.postLikeRepository.delete({
+            postId,
+            userId,
+        });
     }
 }
