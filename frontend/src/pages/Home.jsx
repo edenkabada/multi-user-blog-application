@@ -13,7 +13,15 @@ function Home() {
 
   // Fetch posts from the backend
   useEffect(() => {
-    fetch('http://localhost:3000/posts')
+    const token = localStorage.getItem('access_token')
+
+    fetch('http://localhost:3000/posts', {
+      headers: token
+        ? {
+          Authorization: `Bearer ${token}`,
+        }
+        : {},
+    })
       .then((response) => response.json())
       .then((data) => setPosts(data))
   }, [])
@@ -96,9 +104,18 @@ function Home() {
 
                 <p className="post-preview">{post.content}</p>
 
-                <button onClick={() => navigate(`/posts/${post.postId}`)}>
-                  Read More
-                </button>
+                <div className="post-card-actions">
+                  <span className="post-likes">
+                    <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                      {post.likedByCurrentUser ? '♥' : '♡'}
+                    </span>{' '}
+                    {post.likesCount}
+                  </span>
+
+                  <button onClick={() => navigate(`/posts/${post.postId}`)}>
+                    Read More
+                  </button>
+                </div>
               </article>
             ))}
           </div>
