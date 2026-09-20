@@ -1,59 +1,123 @@
-import useAuthForm from '../hooks/useAuthForm'
-import FormField from '../components/FormField'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import './Login.css'
 
-// Receive a callback to switch to the registration screen
-function Login({ onSwitchToRegister }) {
-    const { values, setValue, error, success, isSubmitting, submit } = useAuthForm({
-        fields: { username: '', password: '' },
-        requiredFields: ['username', 'password'],
-    })
+function Login() {
 
-    const handleSubmit = (e) => {
+    // Store the values entered in the login form
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+
+    // Store login error messages
+    const [error, setError] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const navigate = useNavigate()
+    const { login } = useAuth()
+
+    // Handle form submission and login request
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        submit('/users/login', {
-            successMessage: 'Login successful!',
-            // Store the JWT token received from the backend
-            onSuccess: (data) => localStorage.setItem('access_token', data.access_token),
-        })
+
+        // Validate that all required fields are filled
+        if (!username.trim()) {
+            setError('Username is required')
+            return
+        }
+
+        if (!password.trim()) {
+            setError('Password is required')
+            return
+        }
+
+        // Clear previous error message
+        setError('')
+        setIsSubmitting(true)
+
+        try {
+            // Send the login data to the backend
+            const response = await fetch('http://localhost:3000/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    password,
+                }),
+            })
+
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                setError(data?.message || 'Login failed. Please try again.')
+                return
+            }
+
+            // Store the JWT token and update the shared auth state
+            login(data.access_token)
+            navigate('/')
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
+
     return (
-        <div>
-            <h1>Login</h1>
-            {error && <p>{error}</p>}
-            {success && <p>{success}</p>}
-            <form onSubmit={handleSubmit}>
+        <div className="login-page">
 
-                <FormField
-                    id="username"
-                    label="Username"
-                    placeholder="Enter your username"
-                    value={values.username}
-                    onChange={(value) => setValue('username', value)}
-                />
+            <div
+                className="login-logo"
+                onClick={() => navigate('/')}
+            >
+                Multi User Blog
+            </div>
 
-                <FormField
-                    id="password"
-                    label="Password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={values.password}
-                    onChange={(value) => setValue('password', value)}
-                />
+            <div className="login-container">
 
-                <button type="submit" disabled={isSubmitting}>
-                    Login
-                </button>
+                <h1>Login</h1>
 
-            </form>
+                {error && <p className="error-message">{error}</p>}
 
-            {/* Allow the user to switch to the Registration screen */}
-            <p>
-                Don't have an account?{' '}
-                <button onClick={onSwitchToRegister}>
-                    Register
-                </button>
-            </p>
+                <form onSubmit={handleSubmit}>
+
+                    <label htmlFor="username">Username</label>
+
+                    <input
+                        id="username"
+                        type="text"
+                        placeholder="Enter your username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+
+                    <label htmlFor="password">Password</label>
+
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+
+                    <button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Logging in...' : 'Login'}
+                    </button>
+
+                </form>
+
+                <p className="register-link">
+                    Don't have an account?{' '}
+                    <button onClick={() => navigate('/register')}>
+                        Register
+                    </button>
+                </p>
+
+            </div>
         </div>
     )
 

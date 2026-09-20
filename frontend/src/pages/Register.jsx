@@ -1,48 +1,122 @@
-import useAuthForm from '../hooks/useAuthForm'
-import FormField from '../components/FormField'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import './Register.css'
 
-// Receive a callback to switch to the login screen
-function Register({ onSwitchToLogin }) {
-    const { values, setValue, error, success, isSubmitting, submit } = useAuthForm({
-        fields: { username: '', email: '', password: '' },
-        requiredFields: ['username', 'email', 'password'],
-    })
+function Register() {
 
-    const handleSubmit = (e) => {
+    // Store the values entered in the registration form
+    const [username, setUsername] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+
+    // Store registration error messages
+    const [error, setError] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const navigate = useNavigate()
+
+    // Handle form submission and registration request
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        submit('/users/register', { successMessage: 'Registration successful!' })
+
+        // Validate that all required fields are filled
+        if (!username.trim()) {
+            setError('Username is required')
+            return
+        }
+
+        if (!email.trim()) {
+            setError('Email is required')
+            return
+        }
+
+        if (!password.trim()) {
+            setError('Password is required')
+            return
+        }
+
+        // Clear previous error message
+        setError('')
+        setIsSubmitting(true)
+
+        try {
+            // Send the registration data to the backend
+            const response = await fetch('http://localhost:3000/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                }),
+            })
+
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                const message = Array.isArray(data?.message)
+                    ? data.message.join(', ')
+                    : data?.message || 'Registration failed. Please try again.'
+                setError(message)
+                return
+            }
+
+            navigate('/login')
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
-        <div>
-            <h1>Register</h1>
-            {error && <p>{error}</p>}
-            {success && <p>{success}</p>}
+    <div className="register-page">
+
+        <div
+            className="register-logo"
+            onClick={() => navigate('/')}
+        >
+            Multi User Blog
+        </div>
+
+        <div className="register-container">
+
+            <h1>Create Account</h1>
+
+            {error && <p className="error-message">{error}</p>}
+
             <form onSubmit={handleSubmit}>
-                <FormField
+
+                <label htmlFor="username">Username</label>
+
+                <input
                     id="username"
-                    label="Username"
+                    type="text"
                     placeholder="Enter your username"
-                    value={values.username}
-                    onChange={(value) => setValue('username', value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
 
-                <FormField
+                <label htmlFor="email">Email</label>
+
+                <input
                     id="email"
-                    label="Email"
                     type="email"
                     placeholder="Enter your email"
-                    value={values.email}
-                    onChange={(value) => setValue('email', value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
 
-                <FormField
+                <label htmlFor="password">Password</label>
+
+                <input
                     id="password"
-                    label="Password"
                     type="password"
                     placeholder="Enter your password"
-                    value={values.password}
-                    onChange={(value) => setValue('password', value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
 
                 <button type="submit" disabled={isSubmitting}>
@@ -51,15 +125,16 @@ function Register({ onSwitchToLogin }) {
 
             </form>
 
-            {/* Allow the user to switch to the Login screen */}
-            <p>
+            <p className="login-link">
                 Already have an account?{' '}
-                <button onClick={onSwitchToLogin}>
+                <button onClick={() => navigate('/login')}>
                     Login
                 </button>
             </p>
+
         </div>
-    )
+    </div>
+)
 }
 
 export default Register

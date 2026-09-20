@@ -5,6 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PostsModule } from '../posts/posts.module';
+import { CommentsModule } from '../comments/comments.module';
+import { FollowsModule } from '../follows/follows.module';
 
 // Configure the Users module and its dependencies
 @Module({
@@ -18,12 +21,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1h' },
       }),
     }),
+    PostsModule,
+    CommentsModule,
+    FollowsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}

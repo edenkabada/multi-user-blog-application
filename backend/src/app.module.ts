@@ -4,6 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+import { PostsModule } from './posts/posts.module';
+import { AuthModule } from './auth/auth.module';
+import { CommentsModule } from './comments/comments.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +28,10 @@ import { UsersModule } from './users/users.module';
       synchronize: false,
     }),
     UsersModule,
+    PostsModule,
+    AuthModule,
+    CommentsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
