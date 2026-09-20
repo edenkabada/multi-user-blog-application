@@ -44,6 +44,18 @@ describe('UsersService', () => {
     return error;
   };
 
+  const makePostgresDuplicateEntryError = () => {
+    const error = new QueryFailedError(
+      '',
+      [],
+      new Error('duplicate key value violates unique constraint'),
+    );
+    (error as unknown as { driverError: { code: string } }).driverError = {
+      code: '23505',
+    };
+    return error;
+  };
+
   beforeEach(async () => {
     followsService = {
       getFollowerCount: jest.fn().mockResolvedValue(0),
@@ -144,6 +156,19 @@ describe('UsersService', () => {
 
       await expect(service.register(registerDto)).rejects.toBeInstanceOf(
         ConflictException,
+      );
+    });
+
+    it('also recognizes a PostgreSQL unique_violation (23505) as a duplicate, not just MySQL', async () => {
+      repository.create.mockReturnValue({ ...registerDto } as User);
+      repository.save.mockRejectedValue(makePostgresDuplicateEntryError());
+      repository.findOne.mockResolvedValue({
+        username: registerDto.username,
+        email: 'someone-else@example.com',
+      } as User);
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'Username already exists',
       );
     });
 
@@ -569,6 +594,29 @@ describe('UsersService', () => {
         sqlState: '23000',
         message:
           "Duplicate entry 'noposts1' for key 'users.IDX_ffc81a3b97dcbf8e328d5106c0'",
+      });
+
+      await expect(
+        service.updateProfile(1, { username: 'noposts1' }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('falls back to a generic 409 on a PostgreSQL unique_violation (23505), not just MySQL error codes', async () => {
+      repository.findOne.mockImplementation((query: unknown) => {
+        const { where } = query as FindOneQuery;
+        if (where.userId === 1) {
+          return Promise.resolve({
+            userId: 1,
+            username: 'alice',
+            email: 'alice@example.com',
+          } as User);
+        }
+        return Promise.resolve(null);
+      });
+      repository.save.mockRejectedValue({
+        code: '23505',
+        message:
+          'duplicate key value violates unique constraint "UQ_users_username"',
       });
 
       await expect(

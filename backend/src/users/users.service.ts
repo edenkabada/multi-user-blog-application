@@ -14,10 +14,11 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FollowsService } from '../follows/follows.service';
 
-// Narrows an unknown catch value to a MySQL duplicate-entry error shape,
-// so updateProfile()'s fallback race-condition handler can check it
-// without unsafe `any` access. Checks both the error code and errno,
-// since either may be present depending on the driver/environment.
+// Narrows an unknown catch value to a duplicate-entry error shape, so
+// updateProfile()'s fallback race-condition handler can check it without
+// unsafe `any` access. Recognizes both MySQL ('ER_DUP_ENTRY'/errno 1062)
+// and PostgreSQL ('23505', the unique_violation SQLSTATE) — either may be
+// present depending on which driver DB_TYPE selects.
 function isDuplicateEntryError(
   error: unknown,
 ): error is { code?: unknown; errno?: unknown } {
@@ -29,7 +30,7 @@ function isDuplicateEntryError(
   const errno =
     'errno' in error ? (error as { errno?: unknown }).errno : undefined;
 
-  return code === 'ER_DUP_ENTRY' || errno === 1062;
+  return code === 'ER_DUP_ENTRY' || code === '23505' || errno === 1062;
 }
 
 @Injectable()
@@ -291,11 +292,17 @@ export class UsersService {
     };
   }
 
+  // Recognizes both MySQL ('ER_DUP_ENTRY') and PostgreSQL ('23505', the
+  // unique_violation SQLSTATE) unique-constraint violations — either may
+  // occur depending on which driver DB_TYPE selects.
   private isDuplicateEntryError(error: unknown): error is QueryFailedError {
-    return (
-      error instanceof QueryFailedError &&
-      (error as { driverError?: { code?: string } }).driverError?.code ===
-        'ER_DUP_ENTRY'
-    );
+    if (!(error instanceof QueryFailedError)) {
+      return false;
+    }
+
+    const code = (error as { driverError?: { code?: string } }).driverError
+      ?.code;
+
+    return code === 'ER_DUP_ENTRY' || code === '23505';
   }
 }
