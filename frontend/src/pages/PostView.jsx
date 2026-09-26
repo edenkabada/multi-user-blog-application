@@ -55,7 +55,15 @@ function PostView() {
 
     // Fetch the post details
     useEffect(() => {
-        fetch(`http://localhost:3000/posts/${postId}`)
+        const token = localStorage.getItem('access_token')
+
+        fetch(`http://localhost:3000/posts/${postId}`, {
+            headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                }
+                : {},
+        })
             .then((response) => response.json())
             .then((data) => setPost(data))
     }, [postId])
@@ -121,6 +129,37 @@ function PostView() {
                         : currentComment
                 )
             )
+        } catch {
+            // Keep the current UI state if the request fails
+        }
+    }
+
+    const handlePostLike = async () => {
+        const token = localStorage.getItem('access_token')
+
+        const endpoint = post.likedByCurrentUser
+            ? `http://localhost:3000/posts/${post.postId}/unlike`
+            : `http://localhost:3000/posts/${post.postId}/like`
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to update post like')
+            }
+
+            setPost((currentPost) => ({
+                ...currentPost,
+                likedByCurrentUser: !currentPost.likedByCurrentUser,
+                likesCount:
+                    currentPost.likesCount +
+                    (currentPost.likedByCurrentUser ? -1 : 1),
+            }))
         } catch {
             // Keep the current UI state if the request fails
         }
@@ -300,12 +339,22 @@ function PostView() {
 
                     {/* Post actions */}
                     <div className="post-view-actions">
-                        <button
-                            className="back-home-button"
-                            onClick={handleBackHomeClick}
-                        >
-                            ← Back to Home
-                        </button>
+                        <div className="post-like">
+                            <button
+                                onClick={handlePostLike}
+                                disabled={!isLoggedIn}
+                                aria-label={
+                                    post.likedByCurrentUser
+                                        ? 'Unlike post'
+                                        : 'Like post'
+                                }
+                            >
+                                <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                                    {post.likedByCurrentUser ? '♥' : '♡'}
+                                </span>{' '}
+                                {post.likesCount}
+                            </button>
+                        </div>
 
                         {isPostOwner && (
                             <div className="post-owner-actions">

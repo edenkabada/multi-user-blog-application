@@ -49,21 +49,6 @@
   margin-top: 10px;
 }
 
-.back-home-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: transparent;
-  color: #6b7280;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.back-home-button:hover {
-  background-color: #f3f4f6;
-  color: #1f2937;
-}
-
 .edit-post-button {
   padding: 8px 14px;
   border: 1px solid #d1d5db;
@@ -223,8 +208,24 @@
   font-size: 14px;
 }
 
-/* Comment creation */
+.post-like button {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+}
 
+.post-like .liked-heart {
+  color: #dc2626;
+}
+
+.post-like button:disabled {
+  cursor: default;
+}
+
+/* Comment creation */
 
 .comment-create-section form {
   display: flex;
@@ -345,6 +346,10 @@
 
 .comment-like .liked-heart {
   color: #dc2626;
+}
+
+.comment-like button:disabled {
+  cursor: default;
 }
 
 .no-comments {
