@@ -29,7 +29,19 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       "prettier/prettier": ["error", { endOfLine: "auto" }],
+    },
+  },
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      // jest.fn() mocks trip this rule with false positives when referenced
+      // as bare properties (e.g. expect(repo.save).toHaveBeenCalledWith(...)).
+      '@typescript-eslint/unbound-method': 'off',
     },
   },
 );

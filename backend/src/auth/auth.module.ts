@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
-// Configure JWT authentication and export the strategy and guard for other modules
+// Configure JWT authentication and export the strategy and guards for other modules
 @Module({
-  providers: [JwtStrategy, JwtAuthGuard],
-  exports: [JwtStrategy, JwtAuthGuard],
+  providers: [JwtStrategy, JwtAuthGuard, AdminGuard],
+  exports: [JwtStrategy, JwtAuthGuard, AdminGuard],
 })
 export class AuthModule {}
