@@ -11,6 +11,7 @@ function Register() {
 
     // Store registration error messages
     const [error, setError] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const navigate = useNavigate()
 
@@ -36,31 +37,38 @@ function Register() {
 
         // Clear previous error message
         setError('')
+        setIsSubmitting(true)
 
-        // Send the registration data to the backend
-        const response = await fetch('http://localhost:3000/users/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                password,
-            }),
-        })
+        try {
+            // Send the registration data to the backend
+            const response = await fetch('http://localhost:3000/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                }),
+            })
 
-        if (response.ok) {
+            const data = await response.json().catch(() => null)
+
+            if (!response.ok) {
+                const message = Array.isArray(data?.message)
+                    ? data.message.join(', ')
+                    : data?.message || 'Registration failed. Please try again.'
+                setError(message)
+                return
+            }
+
             navigate('/login')
+        } catch {
+            setError('Unable to reach the server. Please try again.')
+        } finally {
+            setIsSubmitting(false)
         }
-
-        // Display the error returned by the backend
-        if (!response.ok) {
-            const data = await response.json()
-            setError(data.message)
-            return
-        }
-
     }
 
     return (
@@ -111,8 +119,8 @@ function Register() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button type="submit">
-                    Register
+                <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? 'Registering...' : 'Register'}
                 </button>
 
             </form>
