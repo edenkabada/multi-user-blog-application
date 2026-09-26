@@ -1,4 +1,4 @@
-CREATE DATABASE blog_app;
+CREATE DATABASE IF NOT EXISTS blog_app;
 USE blog_app;
 
 CREATE TABLE Users (
@@ -46,14 +46,26 @@ CREATE TABLE CommentLikes (
 );
 
 CREATE TABLE PostLikes (
-    like_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    post_id INT NOT NULL,
+    like_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    post_id INT UNSIGNED NOT NULL,
 
     UNIQUE (user_id, post_id),
 
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (post_id) REFERENCES Posts(post_id)
+);
+
+CREATE TABLE Follows (
+    follow_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    follower_id INT UNSIGNED NOT NULL,
+    following_id INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (follower_id, following_id),
+
+    FOREIGN KEY (follower_id) REFERENCES Users(user_id),
+    FOREIGN KEY (following_id) REFERENCES Users(user_id)
 );
 
 
