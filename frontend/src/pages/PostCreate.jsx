@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 import './PostCreate.css'
 
 function PostCreate() {
@@ -32,7 +33,7 @@ function PostCreate() {
         try {
 
             // Send the new post to the backend
-            const response = await fetch('http://localhost:3000/posts', {
+            const response = await fetch(`${API_BASE_URL}/posts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

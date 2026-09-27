@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../config'
 import './PostView.css'
 
 function PostView() {
@@ -31,6 +33,11 @@ function PostView() {
     const { postId } = useParams()
     const navigate = useNavigate()
 
+    // Shared auth state, used only for the nav bar's Profile/Admin links
+    // below -- the ownership/like logic above already reads the token
+    // directly and is left untouched.
+    const { user } = useAuth()
+
     // Authentication and post ownership
 
     // Get the current user's ID from the JWT token
@@ -55,7 +62,15 @@ function PostView() {
 
     // Fetch the post details
     useEffect(() => {
-        fetch(`http://localhost:3000/posts/${postId}`)
+        const token = localStorage.getItem('access_token')
+
+        fetch(`${API_BASE_URL}/posts/${postId}`, {
+            headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                }
+                : {},
+        })
             .then((response) => response.json())
             .then((data) => setPost(data))
     }, [postId])
@@ -66,7 +81,7 @@ function PostView() {
 
         const token = localStorage.getItem('access_token')
 
-        fetch(`http://localhost:3000/comments/${postId}`, {
+        fetch(`${API_BASE_URL}/comments/${postId}`, {
             headers: token
                 ? {
                     Authorization: `Bearer ${token}`,
@@ -91,8 +106,8 @@ function PostView() {
         const token = localStorage.getItem('access_token')
 
         const endpoint = comment.likedByCurrentUser
-            ? `http://localhost:3000/comments/${comment.commentId}/unlike`
-            : `http://localhost:3000/comments/${comment.commentId}/like`
+            ? `${API_BASE_URL}/comments/${comment.commentId}/unlike`
+            : `${API_BASE_URL}/comments/${comment.commentId}/like`
 
         try {
             const response = await fetch(endpoint, {
@@ -121,6 +136,37 @@ function PostView() {
                         : currentComment
                 )
             )
+        } catch {
+            // Keep the current UI state if the request fails
+        }
+    }
+
+    const handlePostLike = async () => {
+        const token = localStorage.getItem('access_token')
+
+        const endpoint = post.likedByCurrentUser
+            ? `${API_BASE_URL}/posts/${post.postId}/unlike`
+            : `${API_BASE_URL}/posts/${post.postId}/like`
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to update post like')
+            }
+
+            setPost((currentPost) => ({
+                ...currentPost,
+                likedByCurrentUser: !currentPost.likedByCurrentUser,
+                likesCount:
+                    currentPost.likesCount +
+                    (currentPost.likedByCurrentUser ? -1 : 1),
+            }))
         } catch {
             // Keep the current UI state if the request fails
         }
@@ -156,7 +202,7 @@ function PostView() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/posts/${postId}`,
+                `${API_BASE_URL}/posts/${postId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -196,7 +242,7 @@ function PostView() {
         try {
             // Send the new comment to the API
             const response = await fetch(
-                `http://localhost:3000/comments/${postId}`,
+                `${API_BASE_URL}/comments/${postId}`,
                 {
                     method: 'POST',
                     headers: {
@@ -221,7 +267,7 @@ function PostView() {
 
         try {
             const commentsResponse = await fetch(
-                `http://localhost:3000/comments/${postId}`
+                `${API_BASE_URL}/comments/${postId}`
             )
 
             if (!commentsResponse.ok) {
@@ -259,6 +305,24 @@ function PostView() {
                         Create Post
                     </button>
 
+                    {isLoggedIn && user && (
+                        <button
+                            className="login-button"
+                            onClick={() => navigate(`/profile/${user.userId}`)}
+                        >
+                            My Profile
+                        </button>
+                    )}
+
+                    {isLoggedIn && user?.role === 'admin' && (
+                        <button
+                            className="login-button"
+                            onClick={() => navigate('/admin/dashboard')}
+                        >
+                            Admin Dashboard
+                        </button>
+                    )}
+
                     {!isLoggedIn && (
                         <button
                             className="login-button"
@@ -276,7 +340,18 @@ function PostView() {
                     <h1>{post.title}</h1>
 
                     <p className="post-author">
-                        By {post.username}
+                        By{' '}
+                        <span
+                            role="link"
+                            tabIndex={0}
+                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            onClick={() => navigate(`/profile/${post.userId}`)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
+                            }}
+                        >
+                            {post.username}
+                        </span>
                     </p>
 
                     <p className="post-date">
@@ -300,12 +375,22 @@ function PostView() {
 
                     {/* Post actions */}
                     <div className="post-view-actions">
-                        <button
-                            className="back-home-button"
-                            onClick={handleBackHomeClick}
-                        >
-                            ← Back to Home
-                        </button>
+                        <div className="post-like">
+                            <button
+                                onClick={handlePostLike}
+                                disabled={!isLoggedIn}
+                                aria-label={
+                                    post.likedByCurrentUser
+                                        ? 'Unlike post'
+                                        : 'Like post'
+                                }
+                            >
+                                <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                                    {post.likedByCurrentUser ? '♥' : '♡'}
+                                </span>{' '}
+                                {post.likesCount}
+                            </button>
+                        </div>
 
                         {isPostOwner && (
                             <div className="post-owner-actions">
@@ -382,7 +467,21 @@ function PostView() {
                                     key={comment.commentId}
                                 >
                                     <p className="comment-author">
-                                        {comment.username}
+                                        {comment.userId ? (
+                                            <span
+                                                role="link"
+                                                tabIndex={0}
+                                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                onClick={() => navigate(`/profile/${comment.userId}`)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') navigate(`/profile/${comment.userId}`)
+                                                }}
+                                            >
+                                                {comment.username}
+                                            </span>
+                                        ) : (
+                                            comment.username
+                                        )}
                                     </p>
 
                                     <p className="comment-date">

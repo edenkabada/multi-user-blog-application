@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router-dom'
 const AuthContext = createContext(null)
 
 // Decodes the payload of a JWT without verifying its signature. This is
-// only used to read the userId/username the backend already embeds in
-// the token, for display purposes — it is not a security check.
+// only used to read the userId/username/role the backend already embeds
+// in the token, for display purposes — it is not a security check (the
+// same approach ProtectedRoute.jsx already uses locally for its own
+// admin-only route check).
 function decodeToken(token) {
   try {
     const payload = token.split('.')[1]
     const decoded = JSON.parse(atob(payload))
-    return { userId: decoded.sub, username: decoded.username }
+    return { userId: decoded.sub, username: decoded.username, role: decoded.role }
   } catch {
     return null
   }

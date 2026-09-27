@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { authFetch } from '../utils/authFetch'
+import { API_BASE_URL } from '../config'
 import './Profile.css'
 
 function Profile() {
 
   const { id } = useParams()
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { user, isLoggedIn, logout } = useAuth()
 
   // True when the logged-in user is viewing their own profile
   const isOwnProfile = !!user && String(user.userId) === id
@@ -37,8 +39,8 @@ function Profile() {
   // fetch pattern in this codebase.
   useEffect(() => {
     const url = isOwnProfile
-      ? 'http://localhost:3000/users/me'
-      : `http://localhost:3000/users/${id}`
+      ? `${API_BASE_URL}/users/me`
+      : `${API_BASE_URL}/users/${id}`
 
     authFetch(url).then((response) => {
       if (response.status === 404) {
@@ -63,19 +65,19 @@ function Profile() {
   // already return results newest-first, so no client-side sorting is
   // needed here.
   useEffect(() => {
-    authFetch(`http://localhost:3000/users/${id}/posts`).then((response) => {
+    authFetch(`${API_BASE_URL}/users/${id}/posts`).then((response) => {
       if (response.ok) {
         response.json().then((data) => setPosts(data))
       }
     })
 
-    authFetch(`http://localhost:3000/users/${id}/comments`).then((response) => {
+    authFetch(`${API_BASE_URL}/users/${id}/comments`).then((response) => {
       if (response.ok) {
         response.json().then((data) => setComments(data))
       }
     })
 
-    authFetch(`http://localhost:3000/users/${id}/activity`).then((response) => {
+    authFetch(`${API_BASE_URL}/users/${id}/activity`).then((response) => {
       if (response.ok) {
         response.json().then((data) => setActivity(data))
       }
@@ -91,7 +93,7 @@ function Profile() {
       return
     }
 
-    authFetch(`http://localhost:3000/users/${id}/follow-status`).then(
+    authFetch(`${API_BASE_URL}/users/${id}/follow-status`).then(
       (response) => {
         if (response.ok) {
           response.json().then((data) => {
@@ -109,7 +111,7 @@ function Profile() {
   const handleFollow = () => {
     setFollowActionLoading(true)
 
-    authFetch(`http://localhost:3000/users/${id}/follow`, {
+    authFetch(`${API_BASE_URL}/users/${id}/follow`, {
       method: 'POST',
     }).then((response) => {
       if (response.ok) {
@@ -128,7 +130,7 @@ function Profile() {
   const handleUnfollow = () => {
     setFollowActionLoading(true)
 
-    authFetch(`http://localhost:3000/users/${id}/follow`, {
+    authFetch(`${API_BASE_URL}/users/${id}/follow`, {
       method: 'DELETE',
     }).then((response) => {
       if (response.ok) {
@@ -162,7 +164,7 @@ function Profile() {
     setEditError('')
     setIsSaving(true)
 
-    const response = await authFetch('http://localhost:3000/users/me', {
+    const response = await authFetch(`${API_BASE_URL}/users/me`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -218,6 +220,51 @@ function Profile() {
 
   return (
     <div className="profile-page">
+      {/* Navigation bar -- matches the pattern already used on
+          Home/PostView/AdminDashboard so there is a way back and to the
+          other existing pages from here, which this page previously had
+          no way to reach at all. */}
+      <nav className="navbar">
+        <div className="logo" onClick={() => navigate('/')}>
+          Multi User Blog
+        </div>
+
+        <div className="navbar-actions">
+          {isLoggedIn && !isOwnProfile && user && (
+            <button
+              className="login-button"
+              onClick={() => navigate(`/profile/${user.userId}`)}
+            >
+              My Profile
+            </button>
+          )}
+
+          {isLoggedIn && user?.role === 'admin' && (
+            <button
+              className="login-button"
+              onClick={() => navigate('/admin/dashboard')}
+            >
+              Admin Dashboard
+            </button>
+          )}
+
+          {!isLoggedIn && (
+            <button
+              className="login-button"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </button>
+          )}
+
+          {isLoggedIn && (
+            <button className="login-button" onClick={logout}>
+              Logout
+            </button>
+          )}
+        </div>
+      </nav>
+
       <div className="profile-container">
 
         {!isEditing && (

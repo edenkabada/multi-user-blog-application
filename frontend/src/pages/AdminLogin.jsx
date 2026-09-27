@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 import './AdminLogin.css'
 
 function AdminLogin({ onLoginSuccess }) {
@@ -33,7 +34,7 @@ function AdminLogin({ onLoginSuccess }) {
 
         // Admin login uses the same endpoint as regular login -- role is
         // checked below, after authentication, not at this request
-        const response = await fetch('http://localhost:3000/users/login', {
+        const response = await fetch(`${API_BASE_URL}/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

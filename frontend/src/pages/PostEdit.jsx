@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 import './PostEdit.css'
 
 function PostEdit() {
@@ -27,7 +28,7 @@ function PostEdit() {
 
     // Fetch the existing post data
     useEffect(() => {
-        fetch(`http://localhost:3000/posts/${postId}`)
+        fetch(`${API_BASE_URL}/posts/${postId}`)
             .then((response) => response.json())
             .then((data) => {
                 setPost(data)
@@ -70,7 +71,7 @@ function PostEdit() {
         const token = localStorage.getItem('access_token')
 
         try {
-            const response = await fetch(`http://localhost:3000/posts/${postId}`, {
+            const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

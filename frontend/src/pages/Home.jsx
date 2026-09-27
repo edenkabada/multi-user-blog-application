@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../config'
 import './Home.css'
 
 
@@ -9,11 +10,19 @@ function Home() {
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
   const [posts, setPosts] = useState([])
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn, logout, user } = useAuth()
 
   // Fetch posts from the backend
   useEffect(() => {
-    fetch('http://localhost:3000/posts')
+    const token = localStorage.getItem('access_token')
+
+    fetch(`${API_BASE_URL}/posts`, {
+      headers: token
+        ? {
+          Authorization: `Bearer ${token}`,
+        }
+        : {},
+    })
       .then((response) => response.json())
       .then((data) => setPosts(data))
   }, [])
@@ -45,6 +54,24 @@ function Home() {
           >
             Create Post
           </button>
+
+          {isLoggedIn && (
+            <button
+              className="login-button"
+              onClick={() => navigate(`/profile/${user.userId}`)}
+            >
+              My Profile
+            </button>
+          )}
+
+          {isLoggedIn && user?.role === 'admin' && (
+            <button
+              className="login-button"
+              onClick={() => navigate('/admin/dashboard')}
+            >
+              Admin Dashboard
+            </button>
+          )}
 
           {!isLoggedIn && (
             <button
@@ -82,7 +109,20 @@ function Home() {
               <article key={post.postId} className="post-card">
                 <h3>{post.title}</h3>
 
-                <p className="post-author">By {post.username}</p>
+                <p className="post-author">
+                  By{' '}
+                  <span
+                    role="link"
+                    tabIndex={0}
+                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => navigate(`/profile/${post.userId}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
+                    }}
+                  >
+                    {post.username}
+                  </span>
+                </p>
 
                 <p className="post-date">
                   {new Date(post.createdAt).toLocaleDateString('en-US', {
@@ -96,9 +136,18 @@ function Home() {
 
                 <p className="post-preview">{post.content}</p>
 
-                <button onClick={() => navigate(`/posts/${post.postId}`)}>
-                  Read More
-                </button>
+                <div className="post-card-actions">
+                  <span className="post-likes">
+                    <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                      {post.likedByCurrentUser ? '♥' : '♡'}
+                    </span>{' '}
+                    {post.likesCount}
+                  </span>
+
+                  <button onClick={() => navigate(`/posts/${post.postId}`)}>
+                    Read More
+                  </button>
+                </div>
               </article>
             ))}
           </div>
