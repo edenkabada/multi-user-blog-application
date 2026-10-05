@@ -52,6 +52,7 @@ export class CommentsService {
           commentId: comment.commentId,
           content: comment.content,
           createdAt: comment.createdAt,
+          userId: comment.userId,
           username: comment.user.username,
           likesCount,
           likedByCurrentUser:

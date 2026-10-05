@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 import './AdminDashboard.css'
 
 function AdminDashboard() {
@@ -20,9 +21,9 @@ function AdminDashboard() {
         const loadDashboard = async () => {
             try {
                 const [usersResponse, postsResponse, commentsResponse] = await Promise.all([
-                    fetch('http://localhost:3000/admin/users', { headers }),
-                    fetch('http://localhost:3000/admin/posts', { headers }),
-                    fetch('http://localhost:3000/admin/comments', { headers }),
+                    fetch(`${API_BASE_URL}/admin/users`, { headers }),
+                    fetch(`${API_BASE_URL}/admin/posts`, { headers }),
+                    fetch(`${API_BASE_URL}/admin/comments`, { headers }),
                 ])
 
                 if (!usersResponse.ok || !postsResponse.ok || !commentsResponse.ok) {
@@ -49,7 +50,7 @@ function AdminDashboard() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/admin/users/${targetUser.userId}/${action}`,
+                `${API_BASE_URL}/admin/users/${targetUser.userId}/${action}`,
                 {
                     method: 'PATCH',
                     headers: { Authorization: `Bearer ${token}` },
@@ -79,7 +80,7 @@ function AdminDashboard() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/admin/posts/${post.postId}`,
+                `${API_BASE_URL}/admin/posts/${post.postId}`,
                 {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` },
@@ -106,7 +107,7 @@ function AdminDashboard() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/admin/comments/${comment.commentId}`,
+                `${API_BASE_URL}/admin/comments/${comment.commentId}`,
                 {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` },

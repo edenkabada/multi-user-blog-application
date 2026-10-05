@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../config'
 import './Login.css'
 
 function Login() {
@@ -37,7 +38,7 @@ function Login() {
 
         try {
             // Send the login data to the backend
-            const response = await fetch('http://localhost:3000/users/login', {
+            const response = await fetch(`${API_BASE_URL}/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,6 +117,12 @@ function Login() {
                     Don't have an account?{' '}
                     <button onClick={() => navigate('/register')}>
                         Register
+                    </button>
+                </p>
+
+                <p className="register-link">
+                    <button onClick={() => navigate('/admin/login')}>
+                        Admin Login
                     </button>
                 </p>
 

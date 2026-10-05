@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../config'
 import './PostView.css'
 
 function PostView() {
@@ -32,6 +33,11 @@ function PostView() {
     const { postId } = useParams()
     const navigate = useNavigate()
 
+    // Shared auth state, used only for the nav bar's Profile/Admin links
+    // below -- the ownership/like logic above already reads the token
+    // directly and is left untouched.
+    const { user } = useAuth()
+
     // Authentication and post ownership
 
     // Get the current user's ID from the JWT token
@@ -58,7 +64,7 @@ function PostView() {
     useEffect(() => {
         const token = localStorage.getItem('access_token')
 
-        fetch(`http://localhost:3000/posts/${postId}`, {
+        fetch(`${API_BASE_URL}/posts/${postId}`, {
             headers: token
                 ? {
                     Authorization: `Bearer ${token}`,
@@ -75,7 +81,7 @@ function PostView() {
 
         const token = localStorage.getItem('access_token')
 
-        fetch(`http://localhost:3000/comments/${postId}`, {
+        fetch(`${API_BASE_URL}/comments/${postId}`, {
             headers: token
                 ? {
                     Authorization: `Bearer ${token}`,
@@ -100,8 +106,8 @@ function PostView() {
         const token = localStorage.getItem('access_token')
 
         const endpoint = comment.likedByCurrentUser
-            ? `http://localhost:3000/comments/${comment.commentId}/unlike`
-            : `http://localhost:3000/comments/${comment.commentId}/like`
+            ? `${API_BASE_URL}/comments/${comment.commentId}/unlike`
+            : `${API_BASE_URL}/comments/${comment.commentId}/like`
 
         try {
             const response = await fetch(endpoint, {
@@ -139,8 +145,8 @@ function PostView() {
         const token = localStorage.getItem('access_token')
 
         const endpoint = post.likedByCurrentUser
-            ? `http://localhost:3000/posts/${post.postId}/unlike`
-            : `http://localhost:3000/posts/${post.postId}/like`
+            ? `${API_BASE_URL}/posts/${post.postId}/unlike`
+            : `${API_BASE_URL}/posts/${post.postId}/like`
 
         try {
             const response = await fetch(endpoint, {
@@ -196,7 +202,7 @@ function PostView() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/posts/${postId}`,
+                `${API_BASE_URL}/posts/${postId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -236,7 +242,7 @@ function PostView() {
         try {
             // Send the new comment to the API
             const response = await fetch(
-                `http://localhost:3000/comments/${postId}`,
+                `${API_BASE_URL}/comments/${postId}`,
                 {
                     method: 'POST',
                     headers: {
@@ -251,8 +257,6 @@ function PostView() {
 
             if (!response.ok) {
                 const data = await response.json().catch(() => null)
-
-                console.log(data)
 
                 const message = Array.isArray(data?.message)
                     ? data.message[0]
@@ -275,7 +279,7 @@ function PostView() {
 
         try {
             const commentsResponse = await fetch(
-                `http://localhost:3000/comments/${postId}`
+                `${API_BASE_URL}/comments/${postId}`
             )
 
             if (!commentsResponse.ok) {
@@ -313,6 +317,24 @@ function PostView() {
                         Create Post
                     </button>
 
+                    {isLoggedIn && user && (
+                        <button
+                            className="login-button"
+                            onClick={() => navigate(`/profile/${user.userId}`)}
+                        >
+                            My Profile
+                        </button>
+                    )}
+
+                    {isLoggedIn && user?.role === 'admin' && (
+                        <button
+                            className="login-button"
+                            onClick={() => navigate('/admin/dashboard')}
+                        >
+                            Admin Dashboard
+                        </button>
+                    )}
+
                     {!isLoggedIn && (
                         <button
                             className="login-button"
@@ -342,7 +364,21 @@ function PostView() {
                     <h1>{post.title}</h1>
 
                     <div className="post-meta">
-                        <span>By <span className="post-meta-username">{post.username}</span></span>
+                        <span>
+                            By{' '}
+                            <span
+                                className="post-meta-username"
+                                role="link"
+                                tabIndex={0}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => navigate(`/profile/${post.userId}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
+                                }}
+                            >
+                                {post.username}
+                            </span>
+                        </span>
                         <span>·</span>
                         <span>
                             {new Date(post.createdAt).toLocaleDateString('en-US', {
@@ -468,7 +504,21 @@ function PostView() {
                                         key={comment.commentId}
                                     >
                                         <p className="comment-author">
-                                            {comment.username}
+                                            {comment.userId ? (
+                                                <span
+                                                    role="link"
+                                                    tabIndex={0}
+                                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                    onClick={() => navigate(`/profile/${comment.userId}`)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') navigate(`/profile/${comment.userId}`)
+                                                    }}
+                                                >
+                                                    {comment.username}
+                                                </span>
+                                            ) : (
+                                                comment.username
+                                            )}
                                         </p>
 
                                         <p className="comment-date">
@@ -516,56 +566,54 @@ function PostView() {
                         )}
                     </section>
                 </section>
-            </main >
+            </main>
 
             {/* Delete confirmation modal */}
-            {
-                showDeleteModal && (
-                    <div className="delete-modal-overlay">
-                        <div className="delete-modal">
+            {showDeleteModal && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal">
 
-                            <div className="delete-modal-header">
-                                <h2>Delete Post</h2>
+                        <div className="delete-modal-header">
+                            <h2>Delete Post</h2>
 
-                                <button
-                                    className="delete-modal-close"
-                                    onClick={handleCloseDeleteModal}
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            <p>
-                                Are you sure you want to delete this post?<br />
-                                This action cannot be undone.
-                            </p>
-
-                            {deleteError && (
-                                <p className="delete-modal-error">
-                                    {deleteError}
-                                </p>
-                            )}
-
-                            <div className="delete-modal-actions">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseDeleteModal}
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleConfirmDelete}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-
+                            <button
+                                className="delete-modal-close"
+                                onClick={handleCloseDeleteModal}
+                            >
+                                ×
+                            </button>
                         </div>
+
+                        <p>
+                            Are you sure you want to delete this post?<br />
+                            This action cannot be undone.
+                        </p>
+
+                        {deleteError && (
+                            <p className="delete-modal-error">
+                                {deleteError}
+                            </p>
+                        )}
+
+                        <div className="delete-modal-actions">
+                            <button
+                                type="button"
+                                onClick={handleCloseDeleteModal}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleConfirmDelete}
+                            >
+                                Delete
+                            </button>
+                        </div>
+
                     </div>
-                )
-            }
+                </div>
+            )}
         </>
     )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { API_BASE_URL } from '../config'
 import './Home.css'
 
 
@@ -9,13 +10,13 @@ function Home() {
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
   const [posts, setPosts] = useState([])
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn, logout, user } = useAuth()
 
   // Fetch posts from the backend
   useEffect(() => {
     const token = localStorage.getItem('access_token')
 
-    fetch('http://localhost:3000/posts', {
+    fetch(`${API_BASE_URL}/posts`, {
       headers: token
         ? {
           Authorization: `Bearer ${token}`,
@@ -53,6 +54,24 @@ function Home() {
           >
             Create Post
           </button>
+
+          {isLoggedIn && (
+            <button
+              className="login-button"
+              onClick={() => navigate(`/profile/${user.userId}`)}
+            >
+              My Profile
+            </button>
+          )}
+
+          {isLoggedIn && user?.role === 'admin' && (
+            <button
+              className="login-button"
+              onClick={() => navigate('/admin/dashboard')}
+            >
+              Admin Dashboard
+            </button>
+          )}
 
           {!isLoggedIn && (
             <button
@@ -111,7 +130,21 @@ function Home() {
                     <h3>{post.title}</h3>
 
                     <div className="post-meta">
-                      <span>By <span className="post-meta-username">{post.username}</span></span>
+                      <span>
+                        By{' '}
+                        <span
+                          className="post-meta-username"
+                          role="link"
+                          tabIndex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/profile/${post.userId}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
+                          }}
+                        >
+                          {post.username}
+                        </span>
+                      </span>
                       <span>·</span>
                       <span>
                         {new Date(post.createdAt).toLocaleDateString('en-US', {
