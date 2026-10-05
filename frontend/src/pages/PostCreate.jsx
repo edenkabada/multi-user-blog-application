@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { FileText, Send, Type } from 'lucide-react'
 import { API_BASE_URL } from '../config'
 import './PostCreate.css'
 
@@ -8,22 +10,51 @@ function PostCreate() {
     // Manage the post form fields and error message
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
+    const [titleError, setTitleError] = useState('')
+    const [contentError, setContentError] = useState('')
     const [error, setError] = useState('')
 
     const navigate = useNavigate()
+
+    const { logout } = useAuth()
+
+    useEffect(() => {
+        const savedTitle = localStorage.getItem('post_draft_title')
+        const savedContent = localStorage.getItem('post_draft_content')
+
+        if (savedTitle) {
+            setTitle(savedTitle)
+        }
+
+        if (savedContent) {
+            setContent(savedContent)
+        }
+    }, [])
 
     // Validate the form and create the post
     const handleSubmit = async (event) => {
 
         event.preventDefault()
 
+        setError('')
+
         if (!title.trim()) {
-            setError('Please enter a title.')
+            setTitleError('Please enter a title.')
+            return
+        }
+
+        if (title.length > 100) {
+            setTitleError('Title is too long. Please keep it under 100 characters.')
             return
         }
 
         if (!content.trim()) {
-            setError('Please enter content.')
+            setContentError('Please enter content.')
+            return
+        }
+
+        if (content.length > 10000) {
+            setContentError('Content is too long. Please keep it under 10,000 characters.')
             return
         }
 
@@ -49,6 +80,10 @@ function PostCreate() {
                 throw new Error('Failed to create post')
             }
 
+            // Remove the saved draft after successful creation
+            localStorage.removeItem('post_draft_title')
+            localStorage.removeItem('post_draft_content')
+
             // Return to the home page after successful creation
             navigate('/')
 
@@ -59,52 +94,113 @@ function PostCreate() {
 
     return (
         <>
-            <nav className="navbar">
+            <nav className="navbar post-create-navbar">
                 <div
                     className="logo"
                     onClick={() => navigate('/')}
                 >
-                    Multi User Blog
+                    <span className="logo-accent">MU</span>Blog
+                </div>
+
+                <div className="navbar-actions">
+                    <button
+                        className="login-button"
+                        onClick={() => {
+                            logout()
+                            navigate('/')
+                        }}
+                    >
+                        Logout
+                    </button>
                 </div>
             </nav>
 
             <main className="post-create-page">
+                <div className="post-create-header">
+                    <div className="post-create-header-text">
+                        <h1>Create New Post</h1>
+                        <p>Share your story with the community</p>
+                    </div>
+
+                    <img
+                        src="/create-post-illustration.png"
+                        alt=""
+                        className="post-create-illustration"
+                    />
+                </div>
+
                 <section className="post-create-container">
-                    <h1>Create New Post</h1>
-                    <p>Share your story with the community</p>
 
                     {error && <p className="form-error">{error}</p>}
 
                     <form onSubmit={handleSubmit}>
-                        <div>
-                            <label htmlFor="title">Title</label>
+                        <div className="title-field">
+                            <label htmlFor="title">
+                                <Type size={18} className="form-icon" />
+                                Title
+                            </label>
                             <input
                                 id="title"
+                                dir="auto"
                                 type="text"
                                 value={title}
-                                onChange={(event) => setTitle(event.target.value)}
+                                onChange={(event) => {
+                                    setTitle(event.target.value)
+                                    localStorage.setItem('post_draft_title', event.target.value)
+                                    setTitleError('')
+                                }}
                             />
+
+                            <div className="title-validation">
+                                {titleError && <p className="field-error">{titleError}</p>}
+
+                                <p className={`character-count ${title.length > 100 ? 'character-count-error' : ''}`}>
+                                    {title.length} / 100
+                                </p>
+                            </div>
                         </div>
 
                         <div>
-                            <label htmlFor="content">Content</label>
+                            <label htmlFor="content">
+                                <FileText size={18} className="form-icon" />
+                                Content
+                            </label>
                             <textarea
                                 id="content"
+                                dir="auto"
                                 value={content}
-                                onChange={(event) => setContent(event.target.value)}
+                                onChange={(event) => {
+                                    setContent(event.target.value)
+                                    localStorage.setItem('post_draft_content', event.target.value)
+                                    setContentError('')
+                                }}
+                                placeholder="Write your story, thoughts, or ideas..."
                             />
+
+                            <div className="content-validation">
+                                {contentError && <p className="field-error">{contentError}</p>}
+
+                                <p className={`character-count ${content.length > 10000 ? 'character-count-error' : ''}`}>
+                                    {content.length.toLocaleString()} / 10,000
+                                </p>
+                            </div>
                         </div>
 
 
                         <div className="post-create-actions">
                             <button
                                 type="button"
-                                onClick={() => navigate('/')}
+                                onClick={() => {
+                                    localStorage.removeItem('post_draft_title')
+                                    localStorage.removeItem('post_draft_content')
+                                    navigate(-1)
+                                }}
                             >
                                 Cancel
                             </button>
 
                             <button type="submit">
+                                <Send size={16} />
                                 Publish Post
                             </button>
                         </div>

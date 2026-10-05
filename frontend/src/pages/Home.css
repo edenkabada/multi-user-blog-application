@@ -1,79 +1,301 @@
-.welcome-section {
-  text-align: center;
-  padding: 80px 20px;
-  background-color: #ffffff;
+.home-page {
+  min-height: 100vh;
+  background-color: #F2F6FF;
 }
 
-.welcome-section h1 {
-  margin: 0 0 12px;
-  font-size: 42px;
-  font-weight: 600;
+/* Navigation */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 5%;
+  background-color: #F3F7FD;
+  box-shadow: none;
 }
 
-.welcome-section p {
-  margin: 0;
-  font-size: 18px;
-  color: #6b7280;
+.logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  cursor: pointer;
+  letter-spacing: -0.8px;
+}
+
+.logo-accent {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-button,
+.create-post-button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .login-button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 6px;
-  background-color: #2563eb;
-  color: white;
-  font-size: 15px;
-  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827;
 }
 
 .login-button:hover {
-  background-color: #1d4ed8;
+  background-color: #f9fafb;
 }
 
 .create-post-button {
-  padding: 10px 18px;
   border: none;
-  border-radius: 6px;
-  background-color: #2563eb;
-  color: white;
-  font-size: 15px;
-  cursor: pointer;
+  background-color: #7b52c9;
+  color: #ffffff;
 }
 
 .create-post-button:hover {
-  background-color: #1d4ed8;
+  background-color: #6d45b8;
+}
+
+/* Welcome section */
+
+.welcome-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  background-color: #E3EEFF;
+  border-radius: 24px;
+  padding: 50px 60px;
+  max-width: 1200px;
+  margin: 20px auto 0;
+  box-sizing: border-box;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 550px;
+}
+
+.welcome-tagline {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 12px;
+}
+
+.welcome-content h1 {
+  font-size: 2.8rem;
+  font-weight: 650;
+  color: #1a2b4c;
+  line-height: 1.2;
+  margin: 0 0 16px;
+  letter-spacing: -0.6px;
+}
+
+.welcome-content p {
+  font-size: 1.15rem;
+  color: #627490;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.welcome-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.welcome-illustration img {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  display: block;
+}
+
+/* Posts */
+
+.posts-section {
+  width: 100%;
+  max-width: 900px;
+  margin: 0;
+  padding: 48px 0 70px 100px;
+  box-sizing: border-box;
+}
+
+.posts-section h2 {
+  margin: 0 0 22px;
+  color: #111827;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-align: left;
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.post-card {
+  padding: 28px 32px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  text-align: left;
+}
+
+.post-card:hover {
+  border-color: #dbe1e8;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+}
+
+.post-card-header {
+  margin-bottom: 18px;
+}
+
+.post-card h3 {
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.4px;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.post-meta-username {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.post-meta-edited {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.post-preview {
+  margin: 0 0 22px;
+  color: #374151;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.post-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #eef0f3;
+}
+
+.post-engagement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.post-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.post-likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.liked-heart {
+  color: #dc2626;
+  font-size: 16px;
+}
+
+.post-card button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.post-card button:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 /* Login required modal */
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .login-modal {
   position: relative;
   width: 100%;
   max-width: 400px;
-  padding: 30px;
+  padding: 36px 30px 30px;
   background-color: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  border: 1.5px solid #E3EEFF;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.08);
   box-sizing: border-box;
   text-align: center;
 }
 
 .login-modal p {
-  margin: 10px 0 0;
-  color: #1f2937;
+  margin: 0 0 24px;
+  color: #1A2B4C;
   font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .modal-close {
@@ -91,106 +313,57 @@
   color: #1f2937;
 }
 
-.post-preview {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.posts-section {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 40px 20px 60px;
-}
-
-.posts-section h2 {
-  margin: 0 0 24px;
-  font-size: 28px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.posts-list {
-  display: grid;
-  gap: 20px;
-}
-
-.post-card {
-  padding: 24px;
+.empty-posts {
+  padding: 50px 20px;
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
+  text-align: center;
 }
 
-.post-card h3 {
-  margin: 0 0 10px;
-  font-size: 22px;
-  font-weight: 600;
+.empty-posts h3 {
+  margin: 0 0 8px;
   color: #111827;
+  font-size: 20px;
+  font-weight: 600;
 }
 
-.post-card p {
+.empty-posts p {
   margin: 0;
-}
-
-.post-card .post-author {
-  margin-bottom: 4px;
-  font-size: 14px;
-  color: #374151;
-}
-
-.post-card .post-date {
-  margin-bottom: 16px;
-  font-size: 13px;
   color: #6b7280;
-}
-
-.post-card .post-preview {
-  margin-bottom: 18px;
-  font-size: 17px;
-  line-height: 1.6;
-  color: #1f2937;
-}
-
-.post-card button {
-  padding: 0;
-  border: none;
-  background: none;
-  color: #2563eb;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.post-card button:hover {
-  color: #1d4ed8;
-}
-
-.post-card-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.post-likes {
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.liked-heart {
-  color: #dc2626;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 /* Responsive */
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 18px 20px;
+  }
+
   .welcome-section {
-    padding: 60px 20px;
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px;
+    border-radius: 16px;
   }
 
-  .welcome-section h1 {
-    font-size: 32px;
+  .welcome-content {
+    align-items: center;
+    max-width: 100%;
+    margin-bottom: 30px;
   }
 
+  .welcome-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .welcome-illustration img {
+    max-width: 280px;
+  }
+
+  .posts-section {
+    padding: 35px 20px 50px;
+  }
 }

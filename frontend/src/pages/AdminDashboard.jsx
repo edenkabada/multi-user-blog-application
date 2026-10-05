@@ -131,148 +131,159 @@ function AdminDashboard() {
     }
 
     return (
-        <>
+        <main className="admin-dashboard-page">
+
             <nav className="navbar">
                 <div className="logo" onClick={() => navigate('/')}>
-                    Multi User Blog
+                    <span className="logo-accent">MU</span>Blog
                 </div>
 
                 <div className="navbar-actions">
                     <span className="admin-badge">Admin</span>
                 </div>
             </nav>
+            <h1>Admin Dashboard</h1>
 
-            <main className="admin-dashboard-page">
-                <h1>Admin Dashboard</h1>
+            {error && <p className="admin-dashboard-error">{error}</p>}
 
-                {error && <p className="admin-dashboard-error">{error}</p>}
+            <section className="admin-dashboard-section">
+                <h2>Users ({users.length})</h2>
 
-                <section className="admin-dashboard-section">
-                    <h2>Users ({users.length})</h2>
+                <div className="admin-table-wrap">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((targetUser) => (
+                                <tr key={targetUser.userId}>
+                                    <td>
+                                        <div className="username-cell">
+                                            <div className="user-avatar">
+                                                {targetUser.username.charAt(0).toUpperCase()}
+                                            </div>
 
-                    <div className="admin-table-wrap">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map((targetUser) => (
-                                    <tr key={targetUser.userId}>
-                                        <td>{targetUser.username}</td>
-                                        <td>{targetUser.email}</td>
-                                        <td>{targetUser.role}</td>
-                                        <td>
-                                            <span
-                                                className={
-                                                    targetUser.isBlocked
-                                                        ? 'admin-status blocked'
-                                                        : 'admin-status active'
-                                                }
-                                            >
-                                                {targetUser.isBlocked ? 'Blocked' : 'Active'}
+                                            <span className="username-text">
+                                                {targetUser.username}
                                             </span>
-                                        </td>
-                                        <td>
-                                            <button onClick={() => handleToggleBlock(targetUser)}>
-                                                {targetUser.isBlocked ? 'Unblock' : 'Block'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section className="admin-dashboard-section">
-                    <h2>Posts ({posts.length})</h2>
-
-                    <div className="admin-table-wrap">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Author</th>
-                                    <th>Created</th>
-                                    <th></th>
+                                        </div>
+                                    </td>
+                                    <td>{targetUser.email}</td>
+                                    <td>{targetUser.role}</td>
+                                    <td>
+                                        <span
+                                            className={
+                                                targetUser.isBlocked
+                                                    ? 'admin-status blocked'
+                                                    : 'admin-status active'
+                                            }
+                                        >
+                                            {targetUser.isBlocked ? 'Blocked' : 'Active'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            className={targetUser.isBlocked ? 'unblock-btn' : 'block-btn'}
+                                            onClick={() => handleToggleBlock(targetUser)}
+                                        >
+                                            {targetUser.isBlocked ? 'Unblock' : 'Block'}
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {posts.map((post) => (
-                                    <tr key={post.postId}>
-                                        <td>{post.title}</td>
-                                        <td>{post.username}</td>
-                                        <td>
-                                            {new Date(post.createdAt).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            })}
-                                        </td>
-                                        <td>
-                                            <button
-                                                className="admin-delete-button"
-                                                onClick={() => handleDeletePost(post)}
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-                <section className="admin-dashboard-section">
-                    <h2>Comments ({comments.length})</h2>
+            <section className="admin-dashboard-section">
+                <h2>Posts ({posts.length})</h2>
 
-                    <div className="admin-table-wrap">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Comment</th>
-                                    <th>Author</th>
-                                    <th>Post</th>
-                                    <th>Created</th>
-                                    <th></th>
+                <div className="admin-table-wrap">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Created</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {posts.map((post) => (
+                                <tr key={post.postId}>
+                                    <td>{post.title}</td>
+                                    <td>{post.username}</td>
+                                    <td>
+                                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })}
+                                    </td>
+                                    <td>
+                                        <button
+                                            className="admin-delete-button"
+                                            onClick={() => handleDeletePost(post)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {comments.map((comment) => (
-                                    <tr key={comment.commentId}>
-                                        <td className="admin-table-truncate">{comment.content}</td>
-                                        <td>{comment.username}</td>
-                                        <td className="admin-table-truncate">{comment.postTitle}</td>
-                                        <td>
-                                            {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            })}
-                                        </td>
-                                        <td>
-                                            <button
-                                                className="admin-delete-button"
-                                                onClick={() => handleDeleteComment(comment)}
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </main>
-        </>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section className="admin-dashboard-section">
+                <h2>Comments ({comments.length})</h2>
+
+                <div className="admin-table-wrap">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Comment</th>
+                                <th>Author</th>
+                                <th>Post</th>
+                                <th>Created</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {comments.map((comment) => (
+                                <tr key={comment.commentId}>
+                                    <td className="admin-table-truncate">{comment.content}</td>
+                                    <td>{comment.username}</td>
+                                    <td className="admin-table-truncate">{comment.postTitle}</td>
+                                    <td>
+                                        {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                        })}
+                                    </td>
+                                    <td>
+                                        <button
+                                            className="admin-delete-button"
+                                            onClick={() => handleDeleteComment(comment)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
     )
 }
 

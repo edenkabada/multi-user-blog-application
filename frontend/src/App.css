@@ -1,38 +1,5 @@
 .app {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: #F2F6FF;
   color: #1f2937;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 60px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-
-@media (max-width: 768px) {
-  .navbar {
-    padding: 16px 20px;
-  }
-
-  .logo {
-    font-size: 20px;
-  }
-
 }

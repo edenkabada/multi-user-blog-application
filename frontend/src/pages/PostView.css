@@ -1,36 +1,91 @@
+/* Navigation */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 5%;
+  background-color: #F3F7FD;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 30px;
+}
+
+.post-view-navbar {
+  background-color: #F8FAFF;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  cursor: pointer;
+  letter-spacing: -0.8px;
+}
+
+.logo-accent {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .post-view-page {
-  padding: 50px 20px;
+  width: 90%;
+  margin: 0 auto 60px auto;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .post-view-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px;
+  width: 100%;
+  padding: 36px;
   background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1.5px solid #E3EEFF;
   border-radius: 10px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  margin-top: 20px;
 }
 
 .post-view-container h1 {
   margin: 0 0 16px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: #111827;
 }
 
 .post-author {
-  margin: 0 0 6px;
-  font-size: 16px;
+  margin: 0;
+  font-size: 15px;
   color: #374151;
 }
 
-.post-date {
-  margin: 0 0 30px;
-  font-size: 14px;
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
   color: #6b7280;
+  font-size: 14px;
+}
+
+.post-meta-username {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.post-meta-edited {
+  font-weight: 600;
+  color: #4b5563;
 }
 
 .post-content {
@@ -49,14 +104,17 @@
   margin-top: 10px;
 }
 
-.edit-post-button {
-  padding: 8px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background-color: #ffffff;
-  color: #374151;
-  font-size: 14px;
-  cursor: pointer;
+.post-engagement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.post-like,
+.post-comments {
+  display: flex;
+  align-items: center;
+  height: 20px;
 }
 
 .edit-post-button:hover {
@@ -182,14 +240,30 @@
   background-color: #b91c1c;
 }
 
+.edit-post-button,
 .delete-post-button {
-  padding: 8px 14px;
-  border: 1px solid #dc2626;
-  border-radius: 6px;
-  background-color: #ffffff;
-  color: #dc2626;
+  padding: 0;
+  border: none;
+  background: none;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+}
+
+.edit-post-button {
+  color: #374151;
+}
+
+.delete-post-button {
+  color: #dc2626;
+}
+
+.edit-post-button:hover {
+  color: #111827;
+}
+
+.delete-post-button:hover {
+  color: #b91c1c;
 }
 
 .delete-post-button:hover {
@@ -199,7 +273,7 @@
 
 .post-owner-actions {
   display: flex;
-  gap: 10px;
+  gap: 24px;
 }
 
 .delete-modal-error {
@@ -227,6 +301,15 @@
 
 /* Comment creation */
 
+.comments-card {
+  width: 100%;
+  padding: 32px 36px;
+  background-color: #ffffff;
+  border: 1.5px solid #E3EEFF;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
 .comment-create-section form {
   display: flex;
   flex-direction: column;
@@ -250,8 +333,8 @@
 }
 
 .comment-create-section {
-  width: 700px;
-  margin: 30px 0 0 calc((100% - 800px) / 2);
+  width: 100%;
+  margin: 30px 0 0;
 }
 
 .comment-create-actions {
@@ -262,12 +345,12 @@
 }
 
 .comment-create-actions button {
-  padding: 10px 18px;
+  padding: 6px 14px;
   border: none;
   border-radius: 6px;
   background-color: #2563eb;
   color: white;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -284,8 +367,8 @@
 /* Comments */
 
 .comments-section {
-  width: 700px;
-  margin: 35px 0 0 calc((100% - 800px) / 2);
+  width: 100%;
+  margin: 35px 0 0;
 }
 
 .comments-section h2 {
@@ -303,8 +386,8 @@
 
 .comment {
   padding: 20px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: #F2F6FF;
+  border: none;
   border-radius: 8px;
   text-align: left;
 }
@@ -362,15 +445,6 @@
   margin: 0;
   color: #dc2626;
   font-size: 14px;
-}
-
-.comments-count {
-  width: 700px;
-  margin: 50px 0 20px calc((100% - 800px) / 2);
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
-  text-align: left;
 }
 
 /* Responsive */

@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { PostLike } from './entities/post-like.entity';
+import { Comment } from '../comments/entities/comment.entity';
+import { CommentLike } from '../comments/entities/comment-like.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 
@@ -18,7 +20,13 @@ export class PostsService {
 
     @InjectRepository(PostLike)
     private readonly postLikeRepository: Repository<PostLike>,
-  ) {}
+
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
+
+    @InjectRepository(CommentLike)
+    private readonly commentLikeRepository: Repository<CommentLike>,
+  ) { }
 
   // Create a new post and associate it with the authenticated user
   async create(
@@ -53,6 +61,10 @@ export class PostsService {
           where: { postId: post.postId },
         });
 
+        const commentsCount = await this.commentRepository.count({
+          where: { postId: post.postId },
+        });
+
         const likedByCurrentUser =
           userId !== null &&
           (await this.postLikeRepository.exists({
@@ -72,6 +84,7 @@ export class PostsService {
           updatedAt: post.updatedAt,
           likesCount,
           likedByCurrentUser,
+          commentsCount,
         };
       }),
     );
@@ -171,6 +184,24 @@ export class PostsService {
       throw new ForbiddenException('You are not allowed to delete this post');
     }
 
+    await this.postLikeRepository.delete({
+      postId,
+    });
+
+    const comments = await this.commentRepository.find({
+      where: { postId },
+    });
+
+    for (const comment of comments) {
+      await this.commentLikeRepository.delete({
+        commentId: comment.commentId,
+      });
+    }
+
+    await this.commentRepository.delete({
+      postId,
+    });
+
     await this.postRepository.remove(post);
 
     return {
@@ -182,6 +213,24 @@ export class PostsService {
   // Callers are responsible for ensuring the requester is actually an admin.
   async adminRemove(postId: number) {
     const post = await this.findPostOrThrow(postId);
+
+    await this.postLikeRepository.delete({
+      postId,
+    });
+
+    const comments = await this.commentRepository.find({
+      where: { postId },
+    });
+    for (const comment of comments) {
+      await this.commentLikeRepository.delete({
+        commentId: comment.commentId,
+      });
+    }
+
+    await this.commentRepository.delete({
+      postId,
+    });
+
     await this.postRepository.remove(post);
 
     return {

@@ -12,7 +12,7 @@ function PostView() {
     const [post, setPost] = useState(null)
 
     // Stores whether the user is logged in
-    const isLoggedIn = !!localStorage.getItem('access_token')
+    const { isLoggedIn, logout } = useAuth()
 
     // Controls the delete confirmation modal
     const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -256,7 +256,19 @@ function PostView() {
             )
 
             if (!response.ok) {
-                throw new Error('Failed to add comment')
+                const data = await response.json().catch(() => null)
+
+                const message = Array.isArray(data?.message)
+                    ? data.message[0]
+                    : data?.message
+
+                if (message?.includes('content must be shorter than or equal to 3000 characters')) {
+                    setCommentError('Comment must be 3000 characters or less.')
+                } else {
+                    setCommentError('Failed to add comment. Please try again.')
+                }
+
+                return
             }
 
             setCommentContent('')
@@ -289,12 +301,12 @@ function PostView() {
     return (
         <>
             {/* Navigation bar */}
-            <nav className="navbar">
+            <nav className="navbar post-view-navbar">
                 <div
                     className="logo"
                     onClick={handleBackHomeClick}
                 >
-                    Multi User Blog
+                    <span className="logo-accent">MU</span>Blog
                 </div>
 
                 <div className="navbar-actions">
@@ -331,6 +343,18 @@ function PostView() {
                             Login
                         </button>
                     )}
+
+                    {isLoggedIn && (
+                        <button
+                            className="login-button"
+                            onClick={() => {
+                                logout()
+                                navigate('/')
+                            }}
+                        >
+                            Logout
+                        </button>
+                    )}
                 </div>
             </nav>
 
@@ -339,35 +363,43 @@ function PostView() {
                 <article className="post-view-container">
                     <h1>{post.title}</h1>
 
-                    <p className="post-author">
-                        By{' '}
-                        <span
-                            role="link"
-                            tabIndex={0}
-                            style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                            onClick={() => navigate(`/profile/${post.userId}`)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
-                            }}
-                        >
-                            {post.username}
+                    <div className="post-meta">
+                        <span>
+                            By{' '}
+                            <span
+                                className="post-meta-username"
+                                role="link"
+                                tabIndex={0}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => navigate(`/profile/${post.userId}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') navigate(`/profile/${post.userId}`)
+                                }}
+                            >
+                                {post.username}
+                            </span>
                         </span>
-                    </p>
+                        <span>·</span>
+                        <span>
+                            {new Date(post.createdAt).toLocaleDateString('en-US', {
+                                month: 'long',
+                                day: 'numeric',
+                                year: 'numeric',
+                            })}{' '}
+                            at{' '}
+                            {new Date(post.createdAt).toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })}
+                        </span>
 
-                    <p className="post-date">
-                        {new Date(post.createdAt).toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                        })}{' '}
-                        at{' '}
-                        {new Date(post.createdAt).toLocaleTimeString('en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                        })}
-
-                        {post.updatedAt && ' · Edited'}
-                    </p>
+                        {post.updatedAt && (
+                            <>
+                                <span>·</span>
+                                <span className="post-meta-edited">Edited</span>
+                            </>
+                        )}
+                    </div>
 
                     <div className="post-content">
                         {post.content}
@@ -375,21 +407,27 @@ function PostView() {
 
                     {/* Post actions */}
                     <div className="post-view-actions">
-                        <div className="post-like">
-                            <button
-                                onClick={handlePostLike}
-                                disabled={!isLoggedIn}
-                                aria-label={
-                                    post.likedByCurrentUser
-                                        ? 'Unlike post'
-                                        : 'Like post'
-                                }
-                            >
-                                <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
-                                    {post.likedByCurrentUser ? '♥' : '♡'}
-                                </span>{' '}
-                                {post.likesCount}
-                            </button>
+                        <div className="post-engagement">
+                            <div className="post-like">
+                                <button
+                                    onClick={handlePostLike}
+                                    disabled={!isLoggedIn}
+                                    aria-label={
+                                        post.likedByCurrentUser
+                                            ? 'Unlike post'
+                                            : 'Like post'
+                                    }
+                                >
+                                    <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                                        {post.likedByCurrentUser ? '♥' : '♡'}
+                                    </span>{' '}
+                                    {post.likesCount}
+                                </button>
+                            </div>
+
+                            <span className="post-comments">
+                                💬 {comments.length}
+                            </span>
                         </div>
 
                         {isPostOwner && (
@@ -398,135 +436,135 @@ function PostView() {
                                     className="edit-post-button"
                                     onClick={handleEditPost}
                                 >
-                                    Edit
+                                    ✎ Edit
                                 </button>
 
                                 <button
                                     className="delete-post-button"
                                     onClick={handleDeletePost}
                                 >
-                                    Delete
+                                    🗑 Delete
                                 </button>
                             </div>
                         )}
                     </div>
                 </article>
 
-                {comments.length > 0 && (
-                    <h2 className="comments-count">
-                        {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
-                    </h2>
-                )}
-
-                {/* Comment creation form */}
-                {isLoggedIn && (
-                    <section className="comment-create-section">
-                        <form onSubmit={handleAddComment}>
-                            <textarea
-                                placeholder="Write a comment..."
-                                value={commentContent}
-                                onChange={(event) =>
-                                    setCommentContent(event.target.value)
-                                }
-                            />
-                            {/* Display comment validation or API errors */}
-                            {commentError && (
-                                <p className="comment-error">
-                                    {commentError}
-                                </p>
-                            )}
-
-                            <div className="comment-create-actions">
-                                <button type="submit">
-                                    Post Comment
-                                </button>
-                            </div>
-                        </form>
-                    </section>
-                )}
-
                 {/* Comments */}
-                <section className="comments-section">
-                    {commentsError && (
-                        <p className="comments-error">
-                            {commentsError}
-                        </p>
+                <section className="comments-card">
+                    <h2>Comments</h2>
+
+                    {/* Comment creation form */}
+                    {isLoggedIn && (
+                        <section className="comment-create-section">
+                            <form onSubmit={handleAddComment}>
+                                <textarea
+                                    placeholder="Write a comment..."
+                                    dir="auto"
+                                    value={commentContent}
+                                    onChange={(event) =>
+                                        setCommentContent(event.target.value)
+                                    }
+                                />
+                                {/* Display comment validation or API errors */}
+                                {commentError && (
+                                    <p className="comment-error">
+                                        {commentError}
+                                    </p>
+                                )}
+
+                                <div className="comment-create-actions">
+                                    <button type="submit">
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
                     )}
 
-                    {!commentsError && comments.length === 0 && (
-                        <p className="no-comments">
-                            No comments yet.
-                        </p>
-                    )}
+                    {/* Comments */}
+                    <section className="comments-section">
+                        {commentsError && (
+                            <p className="comments-error">
+                                {commentsError}
+                            </p>
+                        )}
 
-                    {!commentsError && comments.length > 0 && (
-                        <div className="comments-list">
-                            {comments.map((comment) => (
-                                <article
-                                    className="comment"
-                                    key={comment.commentId}
-                                >
-                                    <p className="comment-author">
-                                        {comment.userId ? (
-                                            <span
-                                                role="link"
-                                                tabIndex={0}
-                                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                                                onClick={() => navigate(`/profile/${comment.userId}`)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') navigate(`/profile/${comment.userId}`)
-                                                }}
+                        {!commentsError && comments.length === 0 && (
+                            <p className="no-comments">
+                                No comments yet.
+                            </p>
+                        )}
+
+                        {!commentsError && comments.length > 0 && (
+                            <div className="comments-list">
+                                {comments.map((comment) => (
+                                    <article
+                                        className="comment"
+                                        key={comment.commentId}
+                                    >
+                                        <p className="comment-author">
+                                            {comment.userId ? (
+                                                <span
+                                                    role="link"
+                                                    tabIndex={0}
+                                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                    onClick={() => navigate(`/profile/${comment.userId}`)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') navigate(`/profile/${comment.userId}`)
+                                                    }}
+                                                >
+                                                    {comment.username}
+                                                </span>
+                                            ) : (
+                                                comment.username
+                                            )}
+                                        </p>
+
+                                        <p className="comment-date">
+                                            {new Date(comment.createdAt).toLocaleDateString(
+                                                'en-US',
+                                                {
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                }
+                                            )}{' '}
+                                            at{' '}
+                                            {new Date(comment.createdAt).toLocaleTimeString(
+                                                'en-GB',
+                                                {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                }
+                                            )}
+                                        </p>
+
+                                        <p className="comment-content">
+                                            {comment.content}
+                                        </p>
+
+                                        <div className="comment-like">
+                                            <button
+                                                onClick={() => handleCommentLike(comment)}
+                                                disabled={!isLoggedIn}
+                                                aria-label={
+                                                    comment.likedByCurrentUser
+                                                        ? 'Unlike comment'
+                                                        : 'Like comment'
+                                                }
                                             >
-                                                {comment.username}
-                                            </span>
-                                        ) : (
-                                            comment.username
-                                        )}
-                                    </p>
-
-                                    <p className="comment-date">
-                                        {new Date(comment.createdAt).toLocaleDateString(
-                                            'en-US',
-                                            {
-                                                month: 'long',
-                                                day: 'numeric',
-                                                year: 'numeric',
-                                            }
-                                        )}{' '}
-                                        at{' '}
-                                        {new Date(comment.createdAt).toLocaleTimeString(
-                                            'en-GB',
-                                            {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            }
-                                        )}
-                                    </p>
-
-                                    <p className="comment-content">
-                                        {comment.content}
-                                    </p>
-
-                                    <div className="comment-like">
-                                        <button
-                                            onClick={() => handleCommentLike(comment)}
-                                            disabled={!isLoggedIn}
-                                            aria-label={
-                                                comment.likedByCurrentUser
-                                                    ? 'Unlike comment'
-                                                    : 'Like comment'
-                                            }
-                                        >
-                                            <span className={comment.likedByCurrentUser ? 'liked-heart' : ''}>
-                                                {comment.likedByCurrentUser ? '♥' : '♡'}
-                                            </span>{' '}
-                                            {comment.likesCount}
-                                        </button>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    )}
+                                                <span className={comment.likedByCurrentUser ? 'liked-heart' : ''}>
+                                                    {comment.likedByCurrentUser ? '♥' : '♡'}
+                                                </span>{' '}
+                                                {comment.likesCount}
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
+                    </section>
                 </section>
             </main>
 

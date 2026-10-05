@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { FileText, Save, Type } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import { API_BASE_URL } from '../config'
 import './PostEdit.css'
@@ -7,10 +9,14 @@ function PostEdit() {
 
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
+    const [titleError, setTitleError] = useState('')
+    const [contentError, setContentError] = useState('')
     const [error, setError] = useState('')
     const [post, setPost] = useState(null)
     const { postId } = useParams()
     const navigate = useNavigate()
+
+    const { logout } = useAuth()
 
     // Get the ID of the currently logged-in user
     const getCurrentUserId = () => {
@@ -32,8 +38,12 @@ function PostEdit() {
             .then((response) => response.json())
             .then((data) => {
                 setPost(data)
-                setTitle(data.title)
-                setContent(data.content)
+
+                const savedTitle = localStorage.getItem(`post_edit_title_${postId}`)
+                const savedContent = localStorage.getItem(`post_edit_content_${postId}`)
+
+                setTitle(savedTitle ?? data.title)
+                setContent(savedContent ?? data.content)
             })
             .catch(() => {
                 setError('Failed to load post.')
@@ -58,13 +68,27 @@ function PostEdit() {
     const handleSubmit = async (event) => {
         event.preventDefault()
 
+        setTitleError('')
+        setContentError('')
+        setError('')
+
         if (!title.trim()) {
-            setError('Please enter a title.')
+            setTitleError('Please enter a title.')
+            return
+        }
+
+        if (title.length > 100) {
+            setTitleError('Title is too long. Please keep it under 100 characters.')
             return
         }
 
         if (!content.trim()) {
-            setError('Please enter content.')
+            setContentError('Please enter content.')
+            return
+        }
+
+        if (content.length > 10000) {
+            setContentError('Content is too long. Please keep it under 10,000 characters.')
             return
         }
 
@@ -87,7 +111,9 @@ function PostEdit() {
                 throw new Error('Failed to update post')
             }
 
-            // Return to the post view after successful update
+            localStorage.removeItem(`post_edit_title_${postId}`)
+            localStorage.removeItem(`post_edit_content_${postId}`)
+
             navigate(`/posts/${postId}`)
 
         } catch {
@@ -97,12 +123,12 @@ function PostEdit() {
 
     return (
         <>
-            <nav className="navbar">
+            <nav className="navbar post-create-navbar">
                 <div
                     className="logo"
                     onClick={() => navigate('/')}
                 >
-                    Multi User Blog
+                    <span className="logo-accent">MU</span>Blog
                 </div>
 
                 <div className="navbar-actions">
@@ -112,45 +138,108 @@ function PostEdit() {
                     >
                         Create Post
                     </button>
+
+                    <button
+                        className="login-button"
+                        onClick={() => {
+                            logout()
+                            navigate('/')
+                        }}
+                    >
+                        Logout
+                    </button>
                 </div>
             </nav>
 
             <main className="post-edit-page">
+                <div className="post-edit-header">
+                    <div className="post-edit-header-text">
+                        <h1>Edit Post</h1>
+                        <p>Update your post</p>
+                    </div>
+
+                    <img
+                        src="/create-post-illustration.png"
+                        alt=""
+                        className="post-edit-illustration"
+                    />
+                </div>
+
                 <section className="post-edit-container">
-                    <h1>Edit Post</h1>
-                    <p>Update your post</p>
 
                     {error && <p className="form-error">{error}</p>}
 
                     <form onSubmit={handleSubmit}>
-                        <div>
-                            <label htmlFor="title">Title</label>
+                        <div className="title-field">
+                            <label htmlFor="title">
+                                <Type size={18} className="form-icon" />
+                                Title
+                            </label>
+
                             <input
                                 id="title"
+                                dir="auto"
                                 type="text"
                                 value={title}
-                                onChange={(event) => setTitle(event.target.value)}
+                                onChange={(event) => {
+                                    setTitle(event.target.value)
+                                    localStorage.setItem(`post_edit_title_${postId}`, event.target.value)
+                                    setTitleError('')
+                                    setError('')
+                                }}
                             />
+
+                            <div className="title-validation">
+                                {titleError && <p className="field-error">{titleError}</p>}
+
+                                <p className={`character-count ${title.length > 100 ? 'character-count-error' : ''}`}>
+                                    {title.length} / 100
+                                </p>
+                            </div>
                         </div>
 
                         <div>
-                            <label htmlFor="content">Content</label>
+                            <label htmlFor="content">
+                                <FileText size={18} className="form-icon" />
+                                Content
+                            </label>
+
                             <textarea
                                 id="content"
+                                dir="auto"
                                 value={content}
-                                onChange={(event) => setContent(event.target.value)}
+                                onChange={(event) => {
+                                    setContent(event.target.value)
+                                    localStorage.setItem(`post_edit_content_${postId}`, event.target.value)
+                                    setContentError('')
+                                    setError('')
+                                }}
+                                placeholder="Write your story, thoughts, or ideas..."
                             />
+
+                            <div className="content-validation">
+                                {contentError && <p className="field-error">{contentError}</p>}
+
+                                <p className={`character-count ${content.length > 10000 ? 'character-count-error' : ''}`}>
+                                    {content.length.toLocaleString()} / 10,000
+                                </p>
+                            </div>
                         </div>
 
                         <div className="post-edit-actions">
                             <button
                                 type="button"
-                                onClick={() => navigate(`/posts/${postId}`)}
+                                onClick={() => {
+                                    localStorage.removeItem(`post_edit_title_${postId}`)
+                                    localStorage.removeItem(`post_edit_content_${postId}`)
+                                    navigate(`/posts/${postId}`)
+                                }}
                             >
                                 Cancel
                             </button>
 
                             <button type="submit">
+                                <Save size={16} />
                                 Save Changes
                             </button>
                         </div>
