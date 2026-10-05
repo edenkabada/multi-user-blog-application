@@ -13,7 +13,7 @@ export class CommentsService {
 
     @InjectRepository(CommentLike)
     private readonly likeRepository: Repository<CommentLike>,
-  ) {}
+  ) { }
 
   // Creates and saves a new comment for the authenticated user and post
   async create(
@@ -115,7 +115,10 @@ export class CommentsService {
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-
+    await this.likeRepository.delete({
+      commentId,
+    });
+    
     await this.commentRepository.remove(comment);
 
     return {

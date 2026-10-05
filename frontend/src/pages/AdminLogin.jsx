@@ -74,7 +74,7 @@ function AdminLogin({ onLoginSuccess }) {
                 className="admin-login-logo"
                 onClick={() => navigate('/')}
             >
-                Multi User Blog
+                <span className="logo-accent">MU</span>Blog
             </div>
 
             <div className="admin-login-container">

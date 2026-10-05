@@ -73,12 +73,14 @@ function Login() {
                 className="login-logo"
                 onClick={() => navigate('/')}
             >
-                Multi User Blog
+                <span className="logo-accent">MU</span>Blog
             </div>
 
             <div className="login-container">
 
-                <h1>Login</h1>
+                <div className="login-header">
+                    <h1>Log in</h1>
+                </div>
 
                 {error && <p className="error-message">{error}</p>}
 

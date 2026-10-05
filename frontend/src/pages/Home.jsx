@@ -39,11 +39,11 @@ function Home() {
 
 
   return (
-    <>
+    <div className="home-page">
       {/* Navigation bar */}
       <nav className="navbar">
         <div className="logo">
-          Multi User Blog
+          <span className="logo-accent">MU</span>Blog
         </div>
 
         <div className="navbar-actions">
@@ -66,7 +66,10 @@ function Home() {
           {isLoggedIn && (
             <button
               className="login-button"
-              onClick={logout}
+              onClick={() => {
+                logout()
+                navigate('/')
+              }}
             >
               Logout
             </button>
@@ -77,8 +80,18 @@ function Home() {
       <main>
         {/* Welcome section */}
         <section className="welcome-section">
-          <h1>Welcome to our blog</h1>
-          <p>Discover stories from our community</p>
+          <div className="welcome-content">
+            <span className="welcome-tagline">SHARE &middot; LEARN &middot; GROW</span>
+            <h1>Welcome to our blog</h1>
+            <p>Discover stories from our community</p>
+          </div>
+
+          <div className="welcome-illustration">
+            <img
+              src="/welcome-illustration.svg"
+              alt="Blog illustration"
+            />
+          </div>
         </section>
 
         {/* Display latest posts */}
@@ -86,38 +99,60 @@ function Home() {
           <h2>Latest Posts</h2>
 
           <div className="posts-list">
-            {posts.map((post) => (
-              <article key={post.postId} className="post-card">
-                <h3>{post.title}</h3>
+            {posts.length === 0 ? (
+              <div className="empty-posts">
+                <h3>No posts yet</h3>
+                <p>Be the first to share something with the community.</p>
+              </div>
+            ) : (
+              posts.map((post) => (
+                <article key={post.postId} className="post-card">
+                  <div className="post-card-header">
+                    <h3>{post.title}</h3>
 
-                <p className="post-author">By {post.username}</p>
+                    <div className="post-meta">
+                      <span>By <span className="post-meta-username">{post.username}</span></span>
+                      <span>·</span>
+                      <span>
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
 
-                <p className="post-date">
-                  {new Date(post.createdAt).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
+                      {post.updatedAt && (
+                        <>
+                          <span>·</span>
+                          <span className="post-meta-edited">Edited</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
 
-                  {post.updatedAt && ' · Edited'}
-                </p>
+                  <p className="post-preview">{post.content}</p>
 
-                <p className="post-preview">{post.content}</p>
+                  <div className="post-card-actions">
+                    <div className="post-engagement">
+                      <span className="post-likes">
+                        <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
+                          {post.likedByCurrentUser ? '♥' : '♡'}
+                        </span>{' '}
+                        {post.likesCount}
+                      </span>
 
-                <div className="post-card-actions">
-                  <span className="post-likes">
-                    <span className={post.likedByCurrentUser ? 'liked-heart' : ''}>
-                      {post.likedByCurrentUser ? '♥' : '♡'}
-                    </span>{' '}
-                    {post.likesCount}
-                  </span>
+                      <span className="post-comments">
+                        💬 {post.commentsCount}
+                      </span>
+                    </div>
 
-                  <button onClick={() => navigate(`/posts/${post.postId}`)}>
-                    Read More
-                  </button>
-                </div>
-              </article>
-            ))}
+                    <button onClick={() => navigate(`/posts/${post.postId}`)}>
+                      Read More →
+                    </button>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
       </main>
@@ -133,11 +168,11 @@ function Home() {
               ×
             </button>
 
-            <p>You need to log in to create a post.</p>
+            <p>Please log in to create a post.</p>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

@@ -4,11 +4,11 @@ import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 export class CreatePostDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(255)
+  @MaxLength(100)
   title: string;
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(5000)
+  @MaxLength(10000)
   content: string;
 }
