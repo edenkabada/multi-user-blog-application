@@ -34,10 +34,10 @@ describe('CreatePostDto', () => {
     expect(errors.some((error) => error.property === 'title')).toBe(true);
   });
 
-  it('fails validation when content exceeds 5000 characters', async () => {
+  it('fails validation when content exceeds 10000 characters', async () => {
     const dto = plainToInstance(CreatePostDto, {
       title: 'valid title',
-      content: 'a'.repeat(5001),
+      content: 'a'.repeat(10001),
     });
 
     const errors = await validate(dto);
