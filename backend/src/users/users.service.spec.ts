@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   ConflictException,
+  ForbiddenException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -188,7 +189,7 @@ describe('UsersService', () => {
       password: 'password123',
     };
 
-    it('returns an access token including the user role', async () => {
+    it('returns an access token for a normal user session', async () => {
       const hashedPassword = await bcrypt.hash(loginDto.password, 10);
       repository.findOne.mockResolvedValue({
         userId: 1,
@@ -207,8 +208,29 @@ describe('UsersService', () => {
         sub: 1,
         username: loginDto.username,
         role: 'user',
+        tokenType: 'user',
       });
       expect(result).toEqual({ access_token: 'signed-jwt' });
+    });
+
+    it('issues a normal user token (no admin privileges) even when the DB role is admin', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 1,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'admin',
+      } as User);
+      jwtService.sign.mockReturnValue('signed-jwt');
+
+      await service.login(loginDto);
+
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        sub: 1,
+        username: loginDto.username,
+        role: 'user',
+        tokenType: 'user',
+      });
     });
 
     it('throws UnauthorizedException when the username is unknown', async () => {
@@ -246,6 +268,89 @@ describe('UsersService', () => {
       } as User);
 
       await expect(service.login(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('adminLogin', () => {
+    const loginDto: LoginUserDto = {
+      username: 'admin',
+      password: 'password123',
+    };
+
+    it('returns an admin access token for an account with the admin role', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 7,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'admin',
+      } as User);
+      jwtService.sign.mockReturnValue('signed-admin-jwt');
+
+      const result = await service.adminLogin(loginDto);
+
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        sub: 7,
+        username: loginDto.username,
+        role: 'admin',
+        tokenType: 'admin',
+      });
+      expect(result).toEqual({ access_token: 'signed-admin-jwt' });
+    });
+
+    it('throws ForbiddenException for a regular user with valid credentials', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 1,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'user',
+      } as User);
+
+      await expect(service.adminLogin(loginDto)).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('throws UnauthorizedException when the username is unknown', async () => {
+      repository.findOne.mockResolvedValue(null);
+
+      await expect(service.adminLogin(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('throws UnauthorizedException for an admin account with the wrong password', async () => {
+      const hashedPassword = await bcrypt.hash('a-different-password', 10);
+      repository.findOne.mockResolvedValue({
+        userId: 7,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'admin',
+      } as User);
+
+      await expect(service.adminLogin(loginDto)).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(jwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('throws UnauthorizedException when the admin account is blocked', async () => {
+      const hashedPassword = await bcrypt.hash(loginDto.password, 10);
+      repository.findOne.mockResolvedValue({
+        userId: 7,
+        username: loginDto.username,
+        password: hashedPassword,
+        role: 'admin',
+        isBlocked: true,
+      } as User);
+
+      await expect(service.adminLogin(loginDto)).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
       expect(jwtService.sign).not.toHaveBeenCalled();

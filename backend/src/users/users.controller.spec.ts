@@ -13,6 +13,7 @@ describe('UsersController', () => {
   let usersService: {
     register: jest.Mock;
     login: jest.Mock;
+    adminLogin: jest.Mock;
     findMe: jest.Mock;
     findPublicProfile: jest.Mock;
     userExists: jest.Mock;
@@ -30,6 +31,7 @@ describe('UsersController', () => {
     usersService = {
       register: jest.fn(),
       login: jest.fn(),
+      adminLogin: jest.fn(),
       findMe: jest.fn(),
       findPublicProfile: jest.fn(),
       userExists: jest.fn(),
@@ -99,6 +101,18 @@ describe('UsersController', () => {
     const result = await controller.login(dto);
 
     expect(usersService.login).toHaveBeenCalledWith(dto);
+    expect(result).toBe(expected);
+  });
+
+  it('delegates admin login to UsersService.adminLogin and returns its result', async () => {
+    const dto: LoginUserDto = { username: 'admin', password: 'password123' };
+    const expected = { access_token: 'signed-admin-jwt' };
+    usersService.adminLogin.mockResolvedValue(expected);
+
+    const result = await controller.adminLogin(dto);
+
+    expect(usersService.adminLogin).toHaveBeenCalledWith(dto);
+    expect(usersService.login).not.toHaveBeenCalled();
     expect(result).toBe(expected);
   });
 

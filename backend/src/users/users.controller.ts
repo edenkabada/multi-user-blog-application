@@ -46,6 +46,13 @@ export class UsersController {
     return this.usersService.login(loginUserDto);
   }
 
+  // Handle admin login requests. Only accounts with the admin role succeed,
+  // and only tokens issued here pass AdminGuard.
+  @Post('admin-login')
+  adminLogin(@Body() loginUserDto: LoginUserDto) {
+    return this.usersService.adminLogin(loginUserDto);
+  }
+
   // Return the authenticated user's own profile.
   // Must be declared before the ':id' route below, otherwise Nest would
   // match "me" as an :id value instead of routing here.
