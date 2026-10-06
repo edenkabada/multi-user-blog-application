@@ -15,11 +15,12 @@ describe('AdminGuard', () => {
       }),
     }) as unknown as ExecutionContext;
 
-  it('allows the request through when the user is an admin', () => {
+  it('allows the request through for an admin session (role and tokenType admin)', () => {
     const context = contextWithUser({
       userId: 1,
       username: 'alon',
       role: 'admin',
+      tokenType: 'admin',
     });
 
     expect(guard.canActivate(context)).toBe(true);
@@ -30,6 +31,39 @@ describe('AdminGuard', () => {
       userId: 1,
       username: 'alon',
       role: 'user',
+      tokenType: 'user',
+    });
+
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it('throws ForbiddenException for a normal-login token, even if it claims role admin', () => {
+    const context = contextWithUser({
+      userId: 1,
+      username: 'alon',
+      role: 'admin',
+      tokenType: 'user',
+    });
+
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it('throws ForbiddenException for a legacy admin token without a tokenType', () => {
+    const context = contextWithUser({
+      userId: 1,
+      username: 'alon',
+      role: 'admin',
+    });
+
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it('throws ForbiddenException when tokenType is admin but role is not', () => {
+    const context = contextWithUser({
+      userId: 1,
+      username: 'alon',
+      role: 'user',
+      tokenType: 'admin',
     });
 
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);

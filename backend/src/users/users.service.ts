@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -82,34 +83,42 @@ export class UsersService {
     }
   }
 
-  // Authenticate the user and generate an access token
+  // Authenticate the user and generate a normal-user access token.
+  // Every account gets a 'user' session here, including accounts whose DB
+  // role is 'admin' -- admin privileges are only granted via adminLogin().
   async login(loginUserDto: LoginUserDto) {
-    const { username, password } = loginUserDto;
-
-    const user = await this.userRepository.findOne({
-      where: { username },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid username or password');
-    }
-
-    // Compare the entered password with the stored hashed password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid username or password');
-    }
-
-    if (user.isBlocked) {
-      throw new UnauthorizedException('This account has been blocked');
-    }
+    const user = await this.validateCredentials(loginUserDto);
 
     // Create the JWT payload with the user's information
     const payload = {
       sub: user.userId,
       username: user.username,
-      role: user.role,
+      role: 'user',
+      tokenType: 'user',
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      access_token: accessToken,
+    };
+  }
+
+  // Authenticate an admin and generate an admin access token. Rejects any
+  // account whose DB role is not 'admin', so AdminGuard (which requires
+  // both role and tokenType to be 'admin') only ever sees tokens from here.
+  async adminLogin(loginUserDto: LoginUserDto) {
+    const user = await this.validateCredentials(loginUserDto);
+
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('This account does not have admin access');
+    }
+
+    const payload = {
+      sub: user.userId,
+      username: user.username,
+      role: 'admin',
+      tokenType: 'admin',
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -290,6 +299,33 @@ export class UsersService {
       followerCount,
       followingCount,
     };
+  }
+
+  // Shared credential check for login() and adminLogin(): the user must
+  // exist, the password must match, and the account must not be blocked.
+  private async validateCredentials(loginUserDto: LoginUserDto) {
+    const { username, password } = loginUserDto;
+
+    const user = await this.userRepository.findOne({
+      where: { username },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    // Compare the entered password with the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    if (user.isBlocked) {
+      throw new UnauthorizedException('This account has been blocked');
+    }
+
+    return user;
   }
 
   // Recognizes both MySQL ('ER_DUP_ENTRY') and PostgreSQL ('23505', the

@@ -32,9 +32,9 @@ function AdminLogin({ onLoginSuccess }) {
         // Clear previous error message
         setError('')
 
-        // Admin login uses the same endpoint as regular login -- role is
-        // checked below, after authentication, not at this request
-        const response = await fetch(`${API_BASE_URL}/users/login`, {
+        // Admin login has its own endpoint -- the backend rejects non-admin
+        // accounts there and only its tokens are accepted by admin routes
+        const response = await fetch(`${API_BASE_URL}/users/admin-login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ function AdminLogin({ onLoginSuccess }) {
         const payload = JSON.parse(atob(data.access_token.split('.')[1]))
 
         // Only accounts with the admin role are allowed past this page
-        if (payload.role !== 'admin') {
+        if (payload.role !== 'admin' || payload.tokenType !== 'admin') {
             setError('This account does not have admin access.')
             return
         }
