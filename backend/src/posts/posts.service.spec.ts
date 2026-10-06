@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { PostsService } from './posts.service';
 import { Post } from './entities/post.entity';
 import { PostLike } from './entities/post-like.entity';
+import { Comment } from '../comments/entities/comment.entity';
+import { CommentLike } from '../comments/entities/comment-like.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 
 describe('PostsService', () => {
   let service: PostsService;
   let repository: jest.Mocked<Repository<Post>>;
   let likeRepository: jest.Mocked<Repository<PostLike>>;
+  let commentRepository: jest.Mocked<Repository<Comment>>;
 
   const user = { userId: 1, username: 'alon' };
   const otherUser = { userId: 2, username: 'someone-else' };
@@ -39,12 +42,34 @@ describe('PostsService', () => {
             exists: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(Comment),
+          useValue: {
+            find: jest.fn(),
+            count: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(CommentLike),
+          useValue: {
+            delete: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<PostsService>(PostsService);
     repository = module.get(getRepositoryToken(Post));
     likeRepository = module.get(getRepositoryToken(PostLike));
+    commentRepository = module.get(getRepositoryToken(Comment));
+
+    // Sensible defaults so existing tests that don't care about comment
+    // cleanup (e.g. remove/adminRemove, findAll) don't have to mock these
+    // explicitly: remove()/adminRemove() iterate over commentRepository.find()'s
+    // result, which must be an array, not undefined.
+    commentRepository.find.mockResolvedValue([]);
+    commentRepository.count.mockResolvedValue(0);
   });
 
   it('should be defined', () => {

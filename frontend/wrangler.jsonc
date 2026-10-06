@@ -1,0 +1,12 @@
+{
+  // Must match the Worker's name in the Cloudflare dashboard
+  "name": "broken-snowflake-1c51",
+  "account_id": "70a0f34dee12119e4154fd1df8f605b8",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Serve index.html for unknown paths so React Router can handle
+    // direct navigation and refreshes on client-side routes (e.g. /login)
+    "not_found_handling": "single-page-application"
+  }
+}

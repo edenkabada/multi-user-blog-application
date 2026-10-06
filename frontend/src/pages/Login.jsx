@@ -120,12 +120,6 @@ function Login() {
                     </button>
                 </p>
 
-                <p className="register-link">
-                    <button onClick={() => navigate('/admin/login')}>
-                        Admin Login
-                    </button>
-                </p>
-
             </div>
         </div>
     )
