@@ -1,47 +1,57 @@
-/* Navigation */
+/* =========================
+   Navigation
+========================= */
 
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 5%;
-  background-color: #F3F7FD;
   width: 100%;
-  box-sizing: border-box;
   margin-bottom: 30px;
+  padding: 20px 5%;
+  box-sizing: border-box;
+  background-color: #F3F7FD;
 }
 
 .navbar.post-create-navbar {
-  background-color: #F8FAFF;
   position: relative;
   z-index: 10;
+  background-color: #F8FAFF;
 }
+
+/* =========================
+   Post Create Page
+========================= */
 
 .post-create-page {
   min-height: 100vh;
-  background-color: #F2F6FF;
   padding-top: 0;
   box-sizing: border-box;
+  background-color: #F2F6FF;
+}
+
+/* =========================
+   Page Header
+========================= */
+
+.post-create-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  width: 90%;
+  margin: -20px auto 25px;
 }
 
 .post-create-header-text {
   padding-top: 50px;
 }
 
-.post-create-header {
-  width: 90%;
-  margin: -20px auto 25px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 40px;
-}
-
 .post-create-header h1 {
   margin: 0 0 20px;
+  color: #111827;
   font-size: 50px;
   font-weight: 700;
-  color: #111827;
 }
 
 .post-create-header p {
@@ -50,42 +60,114 @@
   font-size: 18px;
 }
 
+/* Header Illustration */
+
 .post-create-illustration {
-  width: 300px;
-  height: 300px;
-  object-fit: contain;
-  flex-shrink: 0;
-  margin-top: -70px;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+  width: 300px;
+  height: 300px;
+  margin-top: -70px;
+  object-fit: contain;
 }
+
+/* =========================
+   Post Form Container
+========================= */
 
 .post-create-container {
   width: 100%;
   max-width: 90%;
-  margin: 0 auto;
+  margin: -80px auto 0;
   padding: 40px;
-  background-color: #ffffff;
+  box-sizing: border-box;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  box-sizing: border-box;
+  background-color: #ffffff;
   transform: scaleX(0.96);
   transform-origin: left;
-  margin-top: -80px;
 }
 
 .post-create-container h1 {
   margin: 0 0 10px;
-  text-align: center;
   font-size: 32px;
   font-weight: 600;
+  text-align: center;
 }
 
-.post-create-container>p:not(.form-error) {
+.post-create-container > p:not(.form-error) {
   margin: 0 0 30px;
-  text-align: center;
   color: #6b7280;
   font-size: 16px;
+  text-align: center;
+}
+
+.post-create-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   Form Labels and Icons
+========================= */
+
+.post-create-container label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.form-icon {
+  padding: 5px;
+  border-radius: 6px;
+  background-color: #F2F6FF;
+  color: #2563eb;
+}
+
+/* =========================
+   Title and Content Fields
+========================= */
+
+.post-create-container input,
+.post-create-container textarea {
+  width: 100%;
+  padding: 11px 12px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.post-create-container input {
+  margin-bottom: 0;
+}
+
+.post-create-container textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.post-create-container textarea::placeholder {
+  font-size: 14px;
+}
+
+.post-create-container input:focus,
+.post-create-container textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* =========================
+   Field Validation
+========================= */
+
+.title-field {
+  margin-bottom: 45px;
 }
 
 .field-error {
@@ -94,20 +176,24 @@
   font-size: 14px;
 }
 
-.title-field {
-  margin-bottom: 45px;
+.content-field .field-error {
+  margin: 2px 0 0;
 }
+
+/* Character Counters */
 
 .character-count {
   margin: 6px 0 0;
-  text-align: right;
   color: #6b7280;
   font-size: 13px;
+  text-align: right;
 }
 
 .character-count-error {
   color: #dc2626;
 }
+
+/* Title Validation */
 
 .title-validation {
   display: flex;
@@ -123,9 +209,7 @@
   margin: 0 0 0 auto;
 }
 
-.content-field .field-error {
-  margin: 2px 0 0;
-}
+/* Content Validation */
 
 .content-validation {
   display: flex;
@@ -141,62 +225,19 @@
   margin: 0 0 0 auto;
 }
 
-.post-create-container form {
-  display: flex;
-  flex-direction: column;
-}
-
-.post-create-container label {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 8px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.post-create-container textarea::placeholder {
-  font-size: 14px;
-}
-
-.form-icon {
-  background-color: #F2F6FF;
-  color: #2563eb;
-  padding: 5px;
-  border-radius: 6px;
-}
-
-.post-create-container input,
-.post-create-container textarea {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 15px;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-.post-create-container input {
-  margin-bottom: 0;
-}
-
-.post-create-container textarea {
-  min-height: 220px;
-  resize: vertical;
-}
-
-.post-create-container input:focus,
-.post-create-container textarea:focus {
-  outline: none;
-  border-color: #2563eb;
-}
+/* =========================
+   General Form Error
+========================= */
 
 .form-error {
   margin: 0 0 20px;
   color: #dc2626;
   font-size: 14px;
 }
+
+/* =========================
+   Form Action Buttons
+========================= */
 
 .post-create-actions {
   display: flex;
@@ -210,6 +251,8 @@
   align-items: center;
   gap: 11px;
 }
+
+/* Cancel Button */
 
 .post-create-actions button[type="button"] {
   padding: 8px 16px;
@@ -225,6 +268,8 @@
   background-color: #d1d5db;
 }
 
+/* Publish Button */
+
 .post-create-actions button[type="submit"] {
   padding: 8px 16px;
   border: none;
@@ -239,10 +284,11 @@
   background-color: #1d4ed8;
 }
 
-/* Responsive */
+/* =========================
+   Responsive Design
+========================= */
 
 @media (max-width: 768px) {
-
   .post-create-page {
     padding: 30px 20px;
     box-sizing: border-box;

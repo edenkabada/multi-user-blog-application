@@ -8,6 +8,7 @@ import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
 import { CommentsModule } from './comments/comments.module';
 import { AdminModule } from './admin/admin.module';
+import 'dotenv/config';
 
 // Selects the database driver. Defaults to 'mysql' so existing local dev
 // setups keep working unchanged; set DB_TYPE=postgres for Neon/production.

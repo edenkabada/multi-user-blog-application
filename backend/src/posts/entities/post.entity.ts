@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-// Defines the Post entity and maps it to the Posts table in the database
+// Represents a post and maps it to the Posts table
 @Entity('Posts')
 export class Post {
   @PrimaryGeneratedColumn({ name: 'post_id' })
