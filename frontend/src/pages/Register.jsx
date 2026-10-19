@@ -5,6 +5,8 @@ import './Register.css'
 
 function Register() {
 
+    const navigate = useNavigate()
+
     // Store the values entered in the registration form
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
@@ -13,8 +15,6 @@ function Register() {
     // Store registration error messages
     const [error, setError] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const navigate = useNavigate()
 
     // Handle form submission and registration request
     const handleSubmit = async (e) => {

@@ -46,49 +46,76 @@ export class PostsService {
   // whether the requesting user (if any) has liked it. userId is null for
   // anonymous requests.
   async findAll(userId: number | null) {
-    const posts = await this.postRepository.find({
-      relations: {
-        user: true,
-      },
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+  const posts = await this.postRepository.find({
+    relations: {
+      user: true,
+    },
+    order: {
+      createdAt: 'DESC',
+    },
+  });
 
-    return Promise.all(
-      posts.map(async (post) => {
-        const likesCount = await this.postLikeRepository.count({
-          where: { postId: post.postId },
-        });
-
-        const commentsCount = await this.commentRepository.count({
-          where: { postId: post.postId },
-        });
-
-        const likedByCurrentUser =
-          userId !== null &&
-          (await this.postLikeRepository.exists({
-            where: {
-              postId: post.postId,
-              userId,
-            },
-          }));
-
-        return {
-          postId: post.postId,
-          title: post.title,
-          content: post.content,
-          createdAt: post.createdAt,
-          username: post.user.username,
-          userId: post.userId,
-          updatedAt: post.updatedAt,
-          likesCount,
-          likedByCurrentUser,
-          commentsCount,
-        };
-      }),
-    );
+  if (posts.length === 0) {
+    return [];
   }
+
+  const postIds = posts.map((post) => post.postId);
+
+  const likes = await this.postLikeRepository
+    .createQueryBuilder('like')
+    .select('like.postId', 'postId')
+    .addSelect('COUNT(*)', 'count')
+    .where('like.postId IN (:...postIds)', { postIds })
+    .groupBy('like.postId')
+    .getRawMany();
+
+  const comments = await this.commentRepository
+    .createQueryBuilder('comment')
+    .select('comment.postId', 'postId')
+    .addSelect('COUNT(*)', 'count')
+    .where('comment.postId IN (:...postIds)', { postIds })
+    .groupBy('comment.postId')
+    .getRawMany();
+
+  let userLikes: { postId: number }[] = [];
+
+  if (userId !== null) {
+    userLikes = await this.postLikeRepository
+      .createQueryBuilder('like')
+      .select('like.postId', 'postId')
+      .where('like.userId = :userId', { userId })
+      .andWhere('like.postId IN (:...postIds)', { postIds })
+      .getRawMany();
+  }
+
+  const likesCountByPost = new Map(
+    likes.map((like) => [Number(like.postId), Number(like.count)]),
+  );
+
+  const commentsCountByPost = new Map(
+    comments.map((comment) => [
+      Number(comment.postId),
+      Number(comment.count),
+    ]),
+  );
+
+  const likedPostIds = new Set(
+    userLikes.map((like) => Number(like.postId)),
+  );
+
+  return posts.map((post) => ({
+    postId: post.postId,
+    title: post.title,
+    content: post.content,
+    createdAt: post.createdAt,
+    username: post.user.username,
+    userId: post.userId,
+    updatedAt: post.updatedAt,
+    likesCount: likesCountByPost.get(post.postId) ?? 0,
+    likedByCurrentUser: likedPostIds.has(post.postId),
+    commentsCount: commentsCountByPost.get(post.postId) ?? 0,
+  }));
+}
 
   // Retrieve a specific post by its ID, plus its like count and whether the
   // requesting user (if any) has liked it. userId is null for anonymous

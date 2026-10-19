@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 't
 import { User } from '../../users/entities/user.entity';
 import { Post } from './post.entity';
 
+// Represents a user's like on a post
 @Entity('PostLikes')
 export class PostLike {
   @PrimaryGeneratedColumn({ name: 'like_id' })

@@ -1,40 +1,46 @@
-/* Navigation */
+/* =========================
+   Navigation
+========================= */
 
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 5%;
-  background-color: #F3F7FD;
   width: 100%;
-  box-sizing: border-box;
   margin-bottom: 30px;
+  padding: 20px 5%;
+  box-sizing: border-box;
+  background-color: #F3F7FD;
 }
 
 .navbar.post-create-navbar {
-  background-color: #F8FAFF;
   position: relative;
   z-index: 10;
+  background-color: #F8FAFF;
 }
 
-/* Page */
+/* =========================
+   Post Edit Page
+========================= */
 
 .post-edit-page {
   min-height: 100vh;
-  background-color: #F2F6FF;
   padding-top: 0;
   box-sizing: border-box;
+  background-color: #F2F6FF;
 }
 
-/* Header */
+/* =========================
+   Page Header
+========================= */
 
 .post-edit-header {
-  width: 90%;
-  margin: -20px auto 25px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 40px;
+  width: 90%;
+  margin: -20px auto 25px;
 }
 
 .post-edit-header-text {
@@ -43,9 +49,9 @@
 
 .post-edit-header h1 {
   margin: 0 0 20px;
+  color: #111827;
   font-size: 50px;
   font-weight: 700;
-  color: #111827;
 }
 
 .post-edit-header p {
@@ -54,30 +60,33 @@
   font-size: 18px;
 }
 
+/* Header Illustration */
+
 .post-edit-illustration {
-  width: 300px;
-  height: 300px;
-  object-fit: contain;
-  flex-shrink: 0;
-  margin-top: -70px;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+  width: 300px;
+  height: 300px;
+  margin-top: -70px;
+  object-fit: contain;
 }
 
-/* Form container */
+/* =========================
+   Edit Form Container
+========================= */
 
 .post-edit-container {
   width: 100%;
   max-width: 90%;
-  margin: 0 auto;
+  margin: -80px auto 0;
   padding: 40px;
-  background-color: #ffffff;
+  box-sizing: border-box;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  box-sizing: border-box;
+  background-color: #ffffff;
   transform: scaleX(0.96);
   transform-origin: left;
-  margin-top: -80px;
 }
 
 .post-edit-container form {
@@ -85,7 +94,9 @@
   flex-direction: column;
 }
 
-/* Labels */
+/* =========================
+   Form Labels and Icons
+========================= */
 
 .post-edit-container label {
   display: flex;
@@ -96,26 +107,26 @@
   font-weight: 500;
 }
 
-/* Icons */
-
 .form-icon {
-  background-color: #F2F6FF;
-  color: #2563eb;
   padding: 5px;
   border-radius: 6px;
+  background-color: #F2F6FF;
+  color: #2563eb;
 }
 
-/* Fields */
+/* =========================
+   Title and Content Fields
+========================= */
 
 .post-edit-container input,
 .post-edit-container textarea {
   width: 100%;
   padding: 11px 12px;
+  box-sizing: border-box;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 15px;
-  box-sizing: border-box;
   font-family: inherit;
+  font-size: 15px;
 }
 
 .post-edit-container input {
@@ -137,24 +148,30 @@
   border-color: #2563eb;
 }
 
-/* Character count */
+/* =========================
+   Field Validation
+========================= */
 
 .title-field {
   margin-bottom: 45px;
 }
 
+/* Character Counters */
+
 .character-count {
   margin: 6px 0 0;
-  text-align: right;
   color: #6b7280;
   font-size: 13px;
+  text-align: right;
 }
 
 .character-count-error {
   color: #dc2626;
 }
 
-/* Error */
+/* =========================
+   Error Messages
+========================= */
 
 .form-error {
   margin: 0 0 20px;
@@ -162,7 +179,9 @@
   font-size: 14px;
 }
 
-/* Actions */
+/* =========================
+   Form Action Buttons
+========================= */
 
 .post-edit-actions {
   display: flex;
@@ -178,6 +197,8 @@
   cursor: pointer;
 }
 
+/* Cancel Button */
+
 .post-edit-actions button[type="button"] {
   padding: 8px 16px;
   border: none;
@@ -190,6 +211,8 @@
 .post-edit-actions button[type="button"]:hover {
   background-color: #d1d5db;
 }
+
+/* Save Changes Button */
 
 .post-edit-actions button[type="submit"] {
   padding: 8px 16px;
@@ -204,10 +227,11 @@
   background-color: #1d4ed8;
 }
 
-/* Responsive */
+/* =========================
+   Responsive Design
+========================= */
 
 @media (max-width: 768px) {
-
   .post-edit-page {
     padding: 30px 20px;
   }
