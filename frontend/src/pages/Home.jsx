@@ -7,6 +7,8 @@ import './Home.css'
 
 function Home() {
 
+  const navigate = useNavigate()
+
   // Control the login message modal
   const [showLoginMessage, setShowLoginMessage] = useState(false)
   const [posts, setPosts] = useState([])
@@ -26,8 +28,6 @@ function Home() {
       .then((response) => response.json())
       .then((data) => setPosts(data))
   }, [])
-
-  const navigate = useNavigate()
 
   // Handle the Create Post button click
   const handleCreatePostClick = () => {
@@ -57,7 +57,7 @@ function Home() {
 
           {isLoggedIn && (
             <button
-              className="login-button"
+              className="profile-button"
               onClick={() => navigate(`/profile/${user.userId}`)}
             >
               My Profile
@@ -66,7 +66,7 @@ function Home() {
 
           {isLoggedIn && user?.role === 'admin' && (
             <button
-              className="login-button"
+              className="admin-dashboard-button"
               onClick={() => navigate('/admin/dashboard')}
             >
               Admin Dashboard

@@ -7,6 +7,9 @@ import './PostCreate.css'
 
 function PostCreate() {
 
+    const navigate = useNavigate()
+    const { logout, user } = useAuth()
+
     // Manage the post form fields and error message
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
@@ -14,10 +17,7 @@ function PostCreate() {
     const [contentError, setContentError] = useState('')
     const [error, setError] = useState('')
 
-    const navigate = useNavigate()
-
-    const { logout } = useAuth()
-
+    // Restore the saved post draft from local storage
     useEffect(() => {
         const savedTitle = localStorage.getItem('post_draft_title')
         const savedContent = localStorage.getItem('post_draft_content')
@@ -103,6 +103,22 @@ function PostCreate() {
                 </div>
 
                 <div className="navbar-actions">
+                    <button
+                        className="profile-button"
+                        onClick={() => navigate(`/profile/${user.userId}`)}
+                    >
+                        My Profile
+                    </button>
+
+                    {user?.role === 'admin' && (
+                        <button
+                            className="admin-dashboard-button"
+                            onClick={() => navigate('/admin/dashboard')}
+                        >
+                            Admin Dashboard
+                        </button>
+                    )}
+
                     <button
                         className="login-button"
                         onClick={() => {

@@ -16,9 +16,9 @@ function PostEdit() {
     const { postId } = useParams()
     const navigate = useNavigate()
 
-    const { logout } = useAuth()
+    const { logout, user } = useAuth()
 
-    // Get the ID of the currently logged-in user
+    // Extract the current user's ID from the JWT token
     const getCurrentUserId = () => {
         const token = localStorage.getItem('access_token')
 
@@ -53,7 +53,7 @@ function PostEdit() {
     // The logged-in user is authorized only if they own the post
     const isAuthorized = post != null && Number(post.userId) === Number(currentUserId)
 
-    // Redirect away if the logged-in user doesn't own this post
+    // Redirect users who are not authorized to edit the post
     useEffect(() => {
         if (post && !isAuthorized) {
             navigate(`/posts/${postId}`)
@@ -138,6 +138,22 @@ function PostEdit() {
                     >
                         Create Post
                     </button>
+
+                    <button
+                        className="profile-button"
+                        onClick={() => navigate(`/profile/${user.userId}`)}
+                    >
+                        My Profile
+                    </button>
+
+                    {user?.role === 'admin' && (
+                        <button
+                            className="admin-dashboard-button"
+                            onClick={() => navigate('/admin/dashboard')}
+                        >
+                            Admin Dashboard
+                        </button>
+                    )}
 
                     <button
                         className="login-button"

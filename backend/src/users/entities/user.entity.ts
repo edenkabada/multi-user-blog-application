@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Post } from '../../posts/entities/post.entity';
 
-// Defines the User entity and maps it to the Users table in the database
+// Represents a user and maps it to the Users table
 @Entity('Users')
 export class User {
   @PrimaryGeneratedColumn({ name: 'user_id' })

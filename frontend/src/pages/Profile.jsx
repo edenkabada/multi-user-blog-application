@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { authFetch } from '../utils/authFetch'
 import { API_BASE_URL } from '../config'
+import { Calendar, Pencil, Save, UserRound } from 'lucide-react'
 import './Profile.css'
 
 function Profile() {
@@ -224,16 +225,30 @@ function Profile() {
           Home/PostView/AdminDashboard so there is a way back and to the
           other existing pages from here, which this page previously had
           no way to reach at all. */}
-      <nav className="navbar">
+      <nav className="navbar profile-navbar">
         <div className="logo" onClick={() => navigate('/')}>
-          Multi User Blog
+          <span className="logo-accent">MU</span>Blog
         </div>
 
         <div className="navbar-actions">
-          {isLoggedIn && !isOwnProfile && user && (
+          {isLoggedIn && (
             <button
-              className="login-button"
-              onClick={() => navigate(`/profile/${user.userId}`)}
+              className="create-post-button"
+              onClick={() => navigate('/posts/new')}
+            >
+              Create Post
+            </button>
+          )}
+          {isLoggedIn && user && (isEditing || !isOwnProfile) && (
+            <button
+              className="profile-button"
+              onClick={() => {
+                if (isEditing) {
+                  handleCancel()
+                } else {
+                  navigate(`/profile/${user.userId}`)
+                }
+              }}
             >
               My Profile
             </button>
@@ -241,7 +256,7 @@ function Profile() {
 
           {isLoggedIn && user?.role === 'admin' && (
             <button
-              className="login-button"
+              className="admin-dashboard-button"
               onClick={() => navigate('/admin/dashboard')}
             >
               Admin Dashboard
@@ -268,48 +283,64 @@ function Profile() {
       <div className="profile-container">
 
         {!isEditing && (
-          <>
-            <h1>{profile.username}</h1>
-            <p className="profile-joined">Joined {joinDate}</p>
 
-            <p className="profile-counts">
-              <span>{profile.followerCount} Followers</span>
-              <span>{profile.followingCount} Following</span>
-            </p>
+          <section className="profile-info-card">
+            <img
+              src="/profile-illustration.png"
+              className="profile-illustration"
+              alt=""
+              aria-hidden="true"
+            />
+            <div className="profile-avatar">
+              {profile.username.charAt(0).toUpperCase()}
+            </div>
 
-            {isOwnProfile && (
-              <p className="profile-email">{profile.email}</p>
-            )}
+            <div className="profile-details">
+              <h1>{profile.username}</h1>
 
-            {isOwnProfile && (
-              <button
-                className="edit-profile-button"
-                onClick={handleEditClick}
-              >
-                Edit Profile
-              </button>
-            )}
+              <p className="profile-joined">
+                <Calendar size={16} />
+                Joined {joinDate}
+              </p>
 
-            {!isOwnProfile && user && followStatusLoaded && (
-              <button
-                className={
-                  isFollowing ? 'unfollow-button' : 'follow-button'
-                }
-                onClick={isFollowing ? handleUnfollow : handleFollow}
-                disabled={followActionLoading}
-              >
-                {followActionLoading
-                  ? '...'
-                  : isFollowing
-                  ? 'Unfollow'
-                  : 'Follow'}
-              </button>
-            )}
-          </>
+              <p className="profile-counts">
+                <span><strong>{profile.followerCount}</strong> Followers</span>
+                <span><strong>{profile.followingCount}</strong> Following</span>
+              </p>
+
+              {isOwnProfile && (
+                <>
+                  <p className="profile-email">{profile.email}</p>
+
+                  <button
+                    className="edit-profile-button"
+                    onClick={handleEditClick}
+                  >
+                    <Pencil size={15} />
+                    Edit Profile
+                  </button>
+                </>
+              )}
+
+              {!isOwnProfile && user && followStatusLoaded && (
+                <button
+                  className={isFollowing ? 'unfollow-button' : 'follow-button'}
+                  onClick={isFollowing ? handleUnfollow : handleFollow}
+                  disabled={followActionLoading}
+                >
+                  {followActionLoading
+                    ? '...'
+                    : isFollowing
+                      ? 'Unfollow'
+                      : 'Follow'}
+                </button>
+              )}
+            </div>
+          </section>
         )}
 
         {!isEditing && (
-          <div className="profile-tabs-section">
+          <>
             <div className="profile-tabs">
               <button
                 className={activeTab === 'posts' ? 'active' : ''}
@@ -331,91 +362,99 @@ function Profile() {
               </button>
             </div>
 
-            {activeTab === 'posts' && (
-              <div className="profile-tab-content">
-                {posts.length === 0 && (
-                  <p className="profile-empty-state">No posts yet.</p>
-                )}
+            <div className="profile-tabs-section">
+              {activeTab === 'posts' && (
+                <div className="profile-tab-content">
+                  {posts.length === 0 && (
+                    <p className="profile-empty-state">No posts yet.</p>
+                  )}
 
-                {posts.map((post) => (
-                  <article key={post.postId} className="profile-item-card">
-                    <h3>{post.title}</h3>
-                    <p className="profile-item-date">
-                      {new Date(post.createdAt).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
-                    <p className="profile-item-preview">{post.content}</p>
-                  </article>
-                ))}
-              </div>
-            )}
+                  {posts.map((post) => (
+                    <article key={post.postId} className="profile-item-card">
+                      <h3>{post.title}</h3>
+                      <p className="profile-item-date">
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                      <p className="profile-item-preview">{post.content}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
 
-            {activeTab === 'comments' && (
-              <div className="profile-tab-content">
-                {comments.length === 0 && (
-                  <p className="profile-empty-state">No comments yet.</p>
-                )}
+              {activeTab === 'comments' && (
+                <div className="profile-tab-content">
+                  {comments.length === 0 && (
+                    <p className="profile-empty-state">No comments yet.</p>
+                  )}
 
-                {comments.map((comment) => (
-                  <article
-                    key={comment.commentId}
-                    className="profile-item-card"
-                  >
-                    <p className="profile-item-preview">{comment.content}</p>
-                    <p className="profile-item-date">
-                      {new Date(comment.createdAt).toLocaleDateString(
-                        'en-US',
-                        { month: 'long', day: 'numeric', year: 'numeric' }
-                      )}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'activity' && (
-              <div className="profile-tab-content">
-                {activity.length === 0 && (
-                  <p className="profile-empty-state">No activity yet.</p>
-                )}
-
-                {activity.map((item) => (
-                  <article
-                    key={`${item.type}-${
-                      item.type === 'post' ? item.postId : item.commentId
-                    }`}
-                    className="profile-item-card"
-                  >
-                    <span
-                      className={`activity-badge activity-badge-${item.type}`}
+                  {comments.map((comment) => (
+                    <article
+                      key={comment.commentId}
+                      className="profile-item-card"
                     >
-                      {item.type === 'post' ? 'Post' : 'Comment'}
-                    </span>
+                      <p className="profile-item-date">
+                        {new Date(comment.createdAt).toLocaleDateString(
+                          'en-US',
+                          { month: 'long', day: 'numeric', year: 'numeric' }
+                        )}
+                      </p>
+                      <p className="profile-item-preview">{comment.content}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
 
-                    {item.type === 'post' && <h3>{item.title}</h3>}
+              {activeTab === 'activity' && (
+                <div className="profile-tab-content">
+                  {activity.length === 0 && (
+                    <p className="profile-empty-state">No activity yet.</p>
+                  )}
 
-                    <p className="profile-item-date">
-                      {new Date(item.createdAt).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
+                  {activity.map((item) => (
+                    <article
+                      key={`${item.type}-${item.type === 'post' ? item.postId : item.commentId
+                        }`}
+                      className="profile-item-card"
+                    >
+                      <span
+                        className={`activity-badge activity-badge-${item.type}`}
+                      >
+                        {item.type === 'post' ? 'Post' : 'Comment'}
+                      </span>
 
-                    <p className="profile-item-preview">{item.content}</p>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
+                      {item.type === 'post' && <h3>{item.title}</h3>}
+
+                      <p className="profile-item-date">
+                        {new Date(item.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+
+                      <p className="profile-item-preview">{item.content}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {isOwnProfile && isEditing && (
           <form className="profile-edit-form" onSubmit={handleSave}>
+            <div className="profile-edit-avatar">
+              <UserRound size={36} />
+            </div>
             <h1>Edit Profile</h1>
+
+            <p className="profile-edit-subtitle">
+              Update your account information
+            </p>
 
             {editError && <p className="error-message">{editError}</p>}
 
@@ -437,7 +476,8 @@ function Profile() {
 
             <div className="profile-edit-actions">
               <button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving…' : 'Save'}
+                <Save size={16} />
+                {isSaving ? 'Saving…' : 'Save Changes'}
               </button>
 
               <button

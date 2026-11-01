@@ -32,7 +32,7 @@ export class CommentsService {
 
   // Retrieves comments for a specific post with the username of each
   // commenter, plus each comment's like count and whether the requesting
-  // user (if any) has liked it. userId is null for anonymous requests.
+  // user (if any) has liked it. userId is null for anonymous requests
   async findByPost(postId: number, userId: number | null) {
     const comments = await this.commentRepository.find({
       where: { postId },

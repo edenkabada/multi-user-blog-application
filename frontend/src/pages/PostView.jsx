@@ -6,8 +6,6 @@ import './PostView.css'
 
 function PostView() {
 
-    // Component state
-
     // Stores the current post
     const [post, setPost] = useState(null)
 
@@ -38,8 +36,6 @@ function PostView() {
     // directly and is left untouched.
     const { user } = useAuth()
 
-    // Authentication and post ownership
-
     // Get the current user's ID from the JWT token
     const getCurrentUserId = () => {
         const token = localStorage.getItem('access_token')
@@ -57,8 +53,6 @@ function PostView() {
     // Check whether the current user owns the post
     const isPostOwner =
         isLoggedIn && Number(post?.userId) === Number(currentUserId)
-
-    // Data fetching
 
     // Fetch the post details
     useEffect(() => {
@@ -141,6 +135,7 @@ function PostView() {
         }
     }
 
+    // Like or unlike the current post
     const handlePostLike = async () => {
         const token = localStorage.getItem('access_token')
 
@@ -319,7 +314,7 @@ function PostView() {
 
                     {isLoggedIn && user && (
                         <button
-                            className="login-button"
+                            className="profile-button"
                             onClick={() => navigate(`/profile/${user.userId}`)}
                         >
                             My Profile
@@ -328,7 +323,7 @@ function PostView() {
 
                     {isLoggedIn && user?.role === 'admin' && (
                         <button
-                            className="login-button"
+                            className="admin-dashboard-button"
                             onClick={() => navigate('/admin/dashboard')}
                         >
                             Admin Dashboard
@@ -508,7 +503,7 @@ function PostView() {
                                                 <span
                                                     role="link"
                                                     tabIndex={0}
-                                                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                                                    style={{ cursor: 'pointer', textDecoration: 'none' }}
                                                     onClick={() => navigate(`/profile/${comment.userId}`)}
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') navigate(`/profile/${comment.userId}`)

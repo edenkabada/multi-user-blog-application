@@ -22,7 +22,7 @@ interface OptionalAuthenticatedRequest {
 
 @Controller('comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(private readonly commentsService: CommentsService) { }
 
   // Allows authenticated users to create a comment for a specific post
   @UseGuards(JwtAuthGuard)
@@ -62,9 +62,10 @@ export class CommentsController {
     );
   }
 
-  // Handle requests to retrieve comments for a specific post. Auth is
-  // optional here -- anonymous visitors can still view comments, but a
-  // logged-in user's own like state is included when a valid token is sent.
+  /*
+   * Retrieves comments for a post, including the current user's like state
+   * when authenticated. Anonymous users can also view comments.
+   */
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':postId')
   findCommentsByPost(

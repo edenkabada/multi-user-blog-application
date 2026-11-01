@@ -8,7 +8,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Post } from '../../posts/entities/post.entity';
 
-// Defines the Comment entity and maps it to the Comments table in the database
+// Represents a comment and maps it to the Comments table
 @Entity('Comments')
 export class Comment {
   @PrimaryGeneratedColumn({ name: 'comment_id' })

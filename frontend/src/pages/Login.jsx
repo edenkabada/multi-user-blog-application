@@ -6,6 +6,9 @@ import './Login.css'
 
 function Login() {
 
+    const navigate = useNavigate()
+    const { login } = useAuth()
+
     // Store the values entered in the login form
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -13,9 +16,6 @@ function Login() {
     // Store login error messages
     const [error, setError] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const navigate = useNavigate()
-    const { login } = useAuth()
 
     // Handle form submission and login request
     const handleSubmit = async (e) => {
